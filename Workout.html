@@ -184,7 +184,8 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const fbAuth=firebase.auth();
 const fbDb=firebase.database();
-let cloudUser=null,cloudSaveTimer=null,cloudApplyingRemote=false,cloudReady=false,lastPushedJSON=null;
+let cloudUser=null,cloudSaveTimer=null,cloudApplyingRemote=false,cloudReady=false;
+const mySessionId=Math.random().toString(36).slice(2)+Date.now().toString(36);
 
 function setSyncStatus(text,cls){
   const el=document.getElementById('sync-status');
@@ -198,8 +199,9 @@ function cloudQueueSave(){
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer=setTimeout(()=>{
     const raw=localStorage.getItem(STORAGE_KEY)||'{}';
-    lastPushedJSON=raw;
-    fbDb.ref('users/'+cloudUser.uid+'/workout').set(JSON.parse(raw))
+    const payload=JSON.parse(raw);
+    payload._rev={sid:mySessionId,t:Date.now()};
+    fbDb.ref('users/'+cloudUser.uid+'/workout').set(payload)
       .then(()=>setSyncStatus('Synced','synced'))
       .catch(()=>setSyncStatus('Sync error','err'));
   },900);
@@ -260,8 +262,7 @@ fbAuth.onAuthStateChanged(user=>{
       ref.on('value',snap2=>{
         if(!cloudReady||cloudApplyingRemote)return;
         const remote2=snap2.val();
-        const incomingJSON=JSON.stringify(remote2);
-        if(incomingJSON===lastPushedJSON)return;
+        if(remote2&&remote2._rev&&remote2._rev.sid===mySessionId)return;
         if(remote2&&remote2.plans)cloudApplyRemote(remote2);
       });
     });
