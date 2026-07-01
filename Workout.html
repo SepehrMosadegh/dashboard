@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Workout Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F3F5F4;--s0:#E7EBE9;--s1:#FFFFFF;--s2:#FBFCFC;
+  --bd:#DFE4E2;--bds:#C7CFCC;--bda:#0E9488;
+  --tp:#122421;--ts:#43524F;--tm:#8A9592;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.sync-box{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:2px 2px 0}
+.sync-status{font-size:11px;color:var(--tm);font-family:var(--font);white-space:nowrap}
+.sync-status.synced{color:#0E9488}
+.sync-status.syncing{color:#854F0B}
+.sync-status.err{color:#B3261E}
+.sync-btn{font-size:11px;font-family:var(--font);border:1px solid var(--bd);background:var(--s1);color:var(--tp);padding:5px 12px;border-radius:6px;cursor:pointer}
+.sync-btn:hover{background:var(--s0)}
+body{font-family:var(--font);background:var(--bg);padding:1.5rem;color:var(--tp);line-height:1.4}
+.dash{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.9rem}
+input,select,button{font-family:var(--font);color:var(--tp)}
+input[type=text],input[type=number],input[type=date],select{
+  border:0.5px solid var(--bds);border-radius:6px;background:var(--s2);padding:4px 6px;outline:none;font-size:13px;
+}
+input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,select:focus{border-color:var(--bda);box-shadow:0 0 0 1px var(--bda)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+button{border:0.5px solid var(--bds);border-radius:6px;background:var(--s1);cursor:pointer;color:var(--ts);transition:background .12s}
+button:hover{background:var(--s0)}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.4;cursor:default}
+button:disabled:hover{background:var(--s1)}
+.icon-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.plain-input{border:none;background:transparent;padding:0}
+.plain-input:focus{box-shadow:none;border:none}
+
+/* PLAN BANNER */
+.plan-bar{background:var(--s1);border:0.5px solid var(--bd);border-radius:10px;padding:.6rem .9rem;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--ts)}
+.plan-bar-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.plan-select{border:none;background:transparent;font-weight:500;color:var(--tp);font-size:13px;flex:1;min-width:0;padding-right:18px;text-overflow:ellipsis}
+.plan-select:focus{box-shadow:none}
+
+/* INSIGHTS */
+.card{background:var(--s1);border:0.5px solid var(--bd);border-radius:12px;padding:1.1rem 1.3rem}
+.eyebrow{font-size:11px;font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.06em}
+.insights-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.period-toggle{display:flex;gap:5px}
+.period-btn{font-size:11px;height:26px;padding:0 10px}
+.period-btn.active{border-color:var(--bda);color:var(--bda);font-weight:500}
+.insights-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.insights-grid{grid-template-columns:1fr}}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.prog-track{height:8px;background:var(--s0);border-radius:4px;overflow:hidden;margin-bottom:10px}
+.prog-fill{height:100%;background:var(--bda);border-radius:4px;transition:width .2s}
+.motivate{background:#E4F3F1;border-radius:8px;padding:10px 12px;font-size:12px;color:#0B5D54;line-height:1.5;margin-top:6px}
+.chart-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
+.chart-box{display:flex;align-items:center;justify-content:center;min-height:130px;border:1px dashed var(--bds);border-radius:8px;color:var(--tm);font-size:12px;text-align:center;padding:.5rem}
+
+/* DAY CARDS */
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.cards-grid{grid-template-columns:1fr}}
+.day-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.day-name-input{font-weight:500;font-size:15px;width:100%}
+.date-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.date-row input[type=date]{flex:1;font-size:12px;height:30px}
+.log-btn{height:30px;padding:0 12px;font-size:12px;white-space:nowrap;font-weight:500}
+.log-btn.is-logged{border-color:var(--bda);color:var(--bda);background:#E4F3F1}
+.col-hdr{display:grid;grid-template-columns:26px 26px 1fr 92px;gap:6px;font-size:10px;color:var(--tm);padding:0 0 4px;text-transform:uppercase;letter-spacing:.03em}
+.ex-row{display:grid;grid-template-columns:26px 26px 1fr 92px;gap:6px;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bd)}
+.static-val{font-size:13px;text-align:center;color:var(--ts)}
+.static-name{font-size:13px}
+.stepper{display:flex;align-items:center;justify-content:flex-end;gap:2px}
+.stepper button{width:20px;height:26px;padding:0;font-size:14px;line-height:1;flex-shrink:0}
+.stepper input{width:34px;height:26px;text-align:center;font-size:12px;padding:0}
+.empty-hint{font-size:12px;color:var(--tm);padding:.5rem 0}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(18,36,33,.35);display:none;align-items:flex-start;justify-content:center;padding:4vh 1rem;z-index:500;overflow:auto}
+.overlay.open{display:flex}
+.modal{background:var(--s1);border-radius:12px;padding:1.5rem;max-width:560px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.modal h2{font-size:16px;font-weight:500;margin-bottom:1rem}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--ts);margin-bottom:4px}
+.field input{width:100%;height:34px}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
+.setup-card-block{border:0.5px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--s2)}
+.setup-card-top{display:flex;gap:10px;margin-bottom:10px;align-items:center}
+.setup-card-top input[type=text]{flex:2;height:32px}
+.setup-card-top input[type=number]{flex:1;height:32px}
+.setup-ex-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.setup-ex-row input[type=text]{flex:1;height:30px}
+.setup-ex-row input[type=number]{width:52px;height:30px;text-align:center}
+.setup-ex-row select{width:84px;height:30px}
+.setup-add-ex{font-size:11px;height:28px;padding:0 8px;border-style:dashed}
+.add-day-block-btn{width:100%;border-style:dashed;font-size:13px;height:36px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem}
+.modal-actions button{height:34px;padding:0 14px;font-size:13px}
+.primary-btn{background:var(--bda);color:#fff;border-color:var(--bda)}
+.primary-btn:hover{background:#0B7B71}
+.hint{font-size:11px;color:var(--tm);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="dash">
+  <div class="sync-box">
+    <span id="sync-status" class="sync-status">Not signed in</span>
+    <button id="sync-btn" class="sync-btn">Sign in</button>
+  </div>
+  <div class="plan-bar" id="plan-bar" style="display:none">
+    <div class="plan-bar-left">
+      <i class="ti ti-target-arrow" style="font-size:14px;color:var(--tm)" aria-hidden="true"></i>
+      <select class="plan-select" id="plan-select"></select>
+    </div>
+    <div style="display:flex;gap:4px">
+      <button class="icon-btn" id="edit-plan-btn" title="Edit plan"><i class="ti ti-pencil" style="font-size:13px"></i></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="insights-hdr">
+      <span class="eyebrow">Insights</span>
+      <div class="period-toggle" id="period-toggle">
+        <button class="period-btn" data-period="week">This week</button>
+        <button class="period-btn" data-period="month">This month</button>
+        <button class="period-btn active" data-period="all">All time</button>
+      </div>
+    </div>
+    <div class="insights-grid">
+      <div>
+        <div id="progress-label" style="font-size:12px;color:var(--ts);margin-bottom:8px">Sessions</div>
+        <div id="progress-bars"></div>
+        <div class="motivate" id="motivate-text"></div>
+      </div>
+      <div>
+        <div class="chart-hdr">
+          <span style="font-size:12px;color:var(--ts)">Weight progression</span>
+          <select id="chart-select" style="height:26px;font-size:11px"><option value="">Select exercise…</option></select>
+        </div>
+        <div class="chart-box" id="chart-box">pick an exercise to see its weight over time</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards-grid" id="cards-grid"></div>
+</div>
+
+<!-- Plan setup / edit modal (shared) -->
+<div class="overlay" id="setup-overlay">
+  <div class="modal">
+    <h2 id="setup-title">Set up your plan</h2>
+    <div class="field"><label>Plan name</label><input type="text" id="setup-name" value="Plan 1"></div>
+    <div class="field-row">
+      <div class="field"><label>Start date</label><input type="date" id="setup-start"></div>
+      <div class="field"><label>End date</label><input type="date" id="setup-end"></div>
+    </div>
+    <div id="setup-card-list"></div>
+    <button class="add-day-block-btn" id="setup-add-day"><i class="ti ti-plus" style="font-size:13px;vertical-align:-2px;margin-right:5px"></i>Add day</button>
+    <div class="hint">Set the exercises, sets, and reps for each day here. You'll only log weight from the cards afterward.</div>
+    <div class="modal-actions">
+      <button id="setup-cancel">Cancel</button>
+      <button class="primary-btn" id="setup-create">Create plan</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig={
+  apiKey:"AIzaSyDbHTuKarnhLp88e5pGSY9Z0uv32aJ1BZ0",
+  authDomain:"my-dashboards-ce750.firebaseapp.com",
+  databaseURL:"https://my-dashboards-ce750-default-rtdb.firebaseio.com",
+  projectId:"my-dashboards-ce750",
+  storageBucket:"my-dashboards-ce750.firebasestorage.app",
+  messagingSenderId:"181288810167",
+  appId:"1:181288810167:web:1e25b8e2b75ec4d4c8ff32"
+};
+firebase.initializeApp(firebaseConfig);
+const fbAuth=firebase.auth();
+const fbDb=firebase.database();
+let cloudUser=null,cloudSaveTimer=null,cloudApplyingRemote=false,cloudReady=false;
+
+function setSyncStatus(text,cls){
+  const el=document.getElementById('sync-status');
+  el.textContent=text;
+  el.className='sync-status'+(cls?' '+cls:'');
+}
+
+function cloudQueueSave(){
+  if(!cloudUser||cloudApplyingRemote)return;
+  setSyncStatus('Syncing…','syncing');
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer=setTimeout(()=>{
+    const raw=localStorage.getItem(STORAGE_KEY)||'{}';
+    fbDb.ref('users/'+cloudUser.uid+'/workout').set(JSON.parse(raw))
+      .then(()=>setSyncStatus('Synced','synced'))
+      .catch(()=>setSyncStatus('Sync error','err'));
+  },900);
+}
+
+function cloudApplyRemote(data){
+  cloudApplyingRemote=true;
+  try{
+    if(data&&data.plans){
+      state=data;
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+      document.getElementById('setup-overlay').classList.remove('open');
+      renderAll();
+    }
+  }finally{
+    cloudApplyingRemote=false;
+  }
+}
+
+function cloudSignIn(){
+  const provider=new firebase.auth.GoogleAuthProvider();
+  fbAuth.signInWithPopup(provider).catch(()=>setSyncStatus('Sign-in failed','err'));
+}
+function cloudSignOut(){fbAuth.signOut();}
+
+document.getElementById('sync-btn').onclick=()=>{
+  if(cloudUser)cloudSignOut();else cloudSignIn();
+};
+
+fbAuth.onAuthStateChanged(user=>{
+  cloudUser=user;
+  if(user){
+    document.getElementById('sync-btn').textContent='Sign out';
+    setSyncStatus('Connecting…','syncing');
+    const ref=fbDb.ref('users/'+user.uid+'/workout');
+    ref.once('value').then(snap=>{
+      const remote=snap.val();
+      if(remote&&remote.plans){
+        cloudApplyRemote(remote);
+      }else{
+        cloudQueueSave();
+      }
+      cloudReady=true;
+      setSyncStatus('Synced','synced');
+      ref.on('value',snap2=>{
+        if(!cloudReady||cloudApplyingRemote)return;
+        const remote2=snap2.val();
+        if(remote2&&remote2.plans)cloudApplyRemote(remote2);
+      });
+    });
+  }else{
+    cloudReady=false;
+    document.getElementById('sync-btn').textContent='Sign in';
+    setSyncStatus('Not signed in','');
+  }
+});
+</script>
+<script>
+const STORAGE_KEY = 'workoutDashboardData_v2';
+const BAND_OPTIONS = ['LB','DB'];
+const todayStr = () => new Date().toISOString().slice(0,10);
+const uid = () => Math.random().toString(36).slice(2,10);
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.error('Failed to load data', e); }
+  return { plans: [] };
+}
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); cloudQueueSave(); }
+
+let state = loadData();
+let currentPlanId = null;
+let currentPeriod = 'all';
+let cardUiDate = {};
+let unlockedCards = new Set();
+
+function getCurrentPlan(){ return state.plans.find(p => p.id === currentPlanId) || null; }
+function mostRecentPlanId(){
+  if(!state.plans.length) return null;
+  return [...state.plans].sort((a,b)=> b.createdAt - a.createdAt)[0].id;
+}
+function fmtDate(d){
+  if(!d) return '';
+  return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// ============ PLAN SETUP / EDIT MODAL (shared) ============
+const setupOverlay = document.getElementById('setup-overlay');
+const setupCardList = document.getElementById('setup-card-list');
+let setupState = { cards: [] };
+let editingPlanId = null; // null = creating a new plan
+
+function blankSetupCard(i){ return { id:null, name:`Day ${i+1}`, target:16, exercises:[ blankSetupExercise() ] }; }
+function blankSetupExercise(){ return { id:null, name:'', sets:3, reps:10, type:'weight' }; }
+
+function renderSetupCards(){
+  setupCardList.innerHTML = '';
+  setupState.cards.forEach((card, ci)=>{
+    const block = document.createElement('div'); block.className='setup-card-block';
+    const top = document.createElement('div'); top.className='setup-card-top';
+    const nameInp = document.createElement('input'); nameInp.type='text'; nameInp.placeholder='Day name'; nameInp.value=card.name;
+    nameInp.addEventListener('input', ()=> card.name = nameInp.value);
+    const targetInp = document.createElement('input'); targetInp.type='number'; targetInp.min=0; targetInp.value=card.target; targetInp.title='Target sessions';
+    targetInp.addEventListener('input', ()=> card.target = parseInt(targetInp.value)||0);
+    const rmDayBtn = document.createElement('button'); rmDayBtn.className='icon-btn'; rmDayBtn.title='Remove this day';
+    rmDayBtn.innerHTML = '<i class="ti ti-trash" style="font-size:13px"></i>';
+    rmDayBtn.addEventListener('click', ()=>{ setupState.cards.splice(ci,1); renderSetupCards(); });
+    top.appendChild(nameInp); top.appendChild(targetInp); top.appendChild(rmDayBtn);
+    block.appendChild(top);
+
+    const exList = document.createElement('div');
+    card.exercises.forEach((ex, ei)=>{
+      const row = document.createElement('div'); row.className='setup-ex-row';
+      const exName = document.createElement('input'); exName.type='text'; exName.placeholder='Exercise name'; exName.value=ex.name;
+      exName.addEventListener('input', ()=> ex.name = exName.value);
+      const setsInp = document.createElement('input'); setsInp.type='number'; setsInp.min=1; setsInp.value=ex.sets; setsInp.title='Sets';
+      setsInp.addEventListener('input', ()=> ex.sets = parseInt(setsInp.value)||0);
+      const repsInp = document.createElement('input'); repsInp.type='number'; repsInp.min=1; repsInp.value=ex.reps; repsInp.title='Reps';
+      repsInp.addEventListener('input', ()=> ex.reps = parseInt(repsInp.value)||0);
+      const typeSel = document.createElement('select');
+      typeSel.innerHTML = `<option value="weight">Weight</option><option value="band">Band</option>`;
+      typeSel.value = ex.type;
+      typeSel.addEventListener('change', ()=> ex.type = typeSel.value);
+      const rmBtn = document.createElement('button'); rmBtn.className='icon-btn'; rmBtn.title='Remove exercise';
+      rmBtn.innerHTML = '<i class="ti ti-x" style="font-size:13px"></i>';
+      rmBtn.addEventListener('click', ()=>{ card.exercises.splice(ei,1); renderSetupCards(); });
+      row.appendChild(exName); row.appendChild(setsInp); row.appendChild(repsInp); row.appendChild(typeSel); row.appendChild(rmBtn);
+      exList.appendChild(row);
+    });
+    block.appendChild(exList);
+
+    const addExBtn = document.createElement('button'); addExBtn.className='setup-add-ex';
+    addExBtn.innerHTML = '<i class="ti ti-plus" style="font-size:12px;vertical-align:-2px;margin-right:3px"></i>Add exercise';
+    addExBtn.addEventListener('click', ()=>{ card.exercises.push(blankSetupExercise()); renderSetupCards(); });
+    block.appendChild(addExBtn);
+
+    setupCardList.appendChild(block);
+  });
+}
+document.getElementById('setup-add-day').addEventListener('click', ()=>{
+  setupState.cards.push(blankSetupCard(setupState.cards.length));
+  renderSetupCards();
+});
+
+function openCreateModal(){
+  editingPlanId = null;
+  document.getElementById('setup-title').textContent = 'Set up your plan';
+  document.getElementById('setup-create').textContent = 'Create plan';
+  document.getElementById('setup-name').value = 'Plan ' + (state.plans.length+1);
+  document.getElementById('setup-start').value = todayStr();
+  const end = new Date(); end.setMonth(end.getMonth()+2);
+  document.getElementById('setup-end').value = end.toISOString().slice(0,10);
+  setupState = { cards: [blankSetupCard(0), blankSetupCard(1)] };
+  renderSetupCards();
+  setupOverlay.classList.add('open');
+}
+function openEditModal(){
+  const plan = getCurrentPlan();
+  if(!plan) return;
+  editingPlanId = plan.id;
+  document.getElementById('setup-title').textContent = 'Edit plan';
+  document.getElementById('setup-create').textContent = 'Save changes';
+  document.getElementById('setup-name').value = plan.name;
+  document.getElementById('setup-start').value = plan.startDate;
+  document.getElementById('setup-end').value = plan.endDate;
+  setupState = { cards: plan.cards.map(c=>({
+    id: c.id, name: c.name, target: c.target,
+    exercises: c.exercises.map(e=>({ id:e.id, name:e.name, sets:e.sets, reps:e.reps, type:e.type }))
+  })) };
+  if(!setupState.cards.length) setupState.cards.push(blankSetupCard(0));
+  renderSetupCards();
+  setupOverlay.classList.add('open');
+}
+document.getElementById('edit-plan-btn').addEventListener('click', openEditModal);
+document.getElementById('setup-cancel').addEventListener('click', ()=>{
+  if(state.plans.length) setupOverlay.classList.remove('open');
+});
+document.getElementById('setup-create').addEventListener('click', ()=>{
+  const name = document.getElementById('setup-name').value.trim() || ('Plan ' + (state.plans.length+1));
+  const startDate = document.getElementById('setup-start').value || todayStr();
+  const endDate = document.getElementById('setup-end').value || startDate;
+
+  const existingCardsById = {};
+  if(editingPlanId){
+    const existingPlan = state.plans.find(p=>p.id===editingPlanId);
+    if(existingPlan) existingPlan.cards.forEach(c=> existingCardsById[c.id]=c);
+  }
+
+  const cards = setupState.cards.map(c=>{
+    const cardId = c.id || uid();
+    const existingCard = c.id ? existingCardsById[c.id] : null;
+    const logs = existingCard ? existingCard.logs : {};
+    return {
+      id: cardId,
+      name: c.name.trim() || 'Day',
+      target: Math.max(0, c.target||0),
+      exercises: c.exercises.filter(e=>e.name.trim()!=='').map(e=>({
+        id: e.id || uid(), name: e.name.trim(), sets: Math.max(0,e.sets||0), reps: Math.max(0,e.reps||0), type: e.type
+      })),
+      logs
+    };
+  });
+
+  if(editingPlanId){
+    const plan = state.plans.find(p=>p.id===editingPlanId);
+    plan.name = name; plan.startDate = startDate; plan.endDate = endDate; plan.cards = cards;
+    currentPlanId = plan.id;
+  } else {
+    const plan = { id: uid(), name, startDate, endDate, createdAt: Date.now(), cards };
+    state.plans.push(plan);
+    currentPlanId = plan.id;
+  }
+  cardUiDate = {}; unlockedCards = new Set();
+  saveData();
+  setupOverlay.classList.remove('open');
+  renderAll();
+});
+
+// ============ PLAN SELECTOR ============
+const planSelect = document.getElementById('plan-select');
+planSelect.addEventListener('change', ()=>{
+  if(planSelect.value === '__new__'){
+    planSelect.value = currentPlanId;
+    openCreateModal();
+    return;
+  }
+  currentPlanId = planSelect.value;
+  cardUiDate = {}; unlockedCards = new Set();
+  renderAll();
+});
+
+function renderPlanBar(){
+  const bar = document.getElementById('plan-bar');
+  if(!state.plans.length){ bar.style.display='none'; return; }
+  bar.style.display='flex';
+  const sorted = [...state.plans].sort((a,b)=> b.createdAt - a.createdAt);
+  planSelect.innerHTML = sorted.map(p=>`<option value="${p.id}">${escapeHtml(p.name)} · ${fmtDate(p.startDate)}–${fmtDate(p.endDate)}</option>`).join('')
+    + `<option value="__new__">+ New plan…</option>`;
+  planSelect.value = currentPlanId;
+}
+
+// ============ DAY CARDS ============
+const cardsGrid = document.getElementById('cards-grid');
+
+function latestLoggedValues(card){
+  const dates = Object.keys(card.logs).sort();
+  if(!dates.length) return null;
+  return card.logs[dates[dates.length-1]];
+}
+function defaultDateForCard(card){
+  const dates = Object.keys(card.logs).sort();
+  return dates.length ? dates[dates.length-1] : todayStr();
+}
+
+function renderCards(){
+  cardsGrid.innerHTML='';
+  const plan = getCurrentPlan();
+  if(!plan) return;
+  plan.cards.forEach(card=>{
+    if(!(card.id in cardUiDate)) cardUiDate[card.id] = defaultDateForCard(card);
+    cardsGrid.appendChild(makeCardEl(plan, card));
+  });
+}
+
+function makeStepper(kind, startVal, disabled, exId){
+  const wrap = document.createElement('div'); wrap.className='stepper';
+  const minus = document.createElement('button'); minus.type='button'; minus.textContent='−';
+  const box = document.createElement('input'); box.type='text'; box.readOnly=true; box.dataset.ex = exId;
+  const plus = document.createElement('button'); plus.type='button'; plus.textContent='+';
+  minus.disabled = disabled; plus.disabled = disabled; box.disabled = disabled;
+
+  if(kind==='weight'){
+    let val = Math.max(0, Math.min(140, parseInt(startVal)||0));
+    box.value = val;
+    minus.addEventListener('click', ()=>{ val = Math.max(0, val-10); box.value = val; });
+    plus.addEventListener('click', ()=>{ val = Math.min(140, val+10); box.value = val; });
+  } else {
+    let idx = Math.max(0, BAND_OPTIONS.indexOf(startVal));
+    box.value = BAND_OPTIONS[idx];
+    minus.addEventListener('click', ()=>{ idx = Math.max(0, idx-1); box.value = BAND_OPTIONS[idx]; });
+    plus.addEventListener('click', ()=>{ idx = Math.min(BAND_OPTIONS.length-1, idx+1); box.value = BAND_OPTIONS[idx]; });
+  }
+  wrap.appendChild(minus); wrap.appendChild(box); wrap.appendChild(plus);
+  return wrap;
+}
+
+function makeCardEl(plan, card){
+  const el = document.createElement('div'); el.className='card';
+  const date = cardUiDate[card.id];
+  const existingLog = card.logs[date];
+  const isUnlocked = unlockedCards.has(card.id);
+  const isLoggedView = !!existingLog && !isUnlocked;
+
+  const hdr = document.createElement('div'); hdr.className='day-card-hdr';
+  const nameInput = document.createElement('input');
+  nameInput.type='text'; nameInput.className='day-name-input plain-input'; nameInput.value=card.name;
+  nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); nameInput.blur(); } });
+  nameInput.addEventListener('blur', ()=>{
+    const v = nameInput.value.trim();
+    card.name = v || card.name;
+    nameInput.value = card.name;
+    saveData(); renderPlanBar(); renderInsights();
+  });
+  hdr.appendChild(nameInput);
+  el.appendChild(hdr);
+
+  const dateRow = document.createElement('div'); dateRow.className='date-row';
+  const calIcon = document.createElement('i'); calIcon.className='ti ti-calendar'; calIcon.style.cssText='font-size:14px;color:var(--tm)';
+  const dateInput = document.createElement('input'); dateInput.type='date'; dateInput.value=date;
+  dateInput.addEventListener('change', ()=>{
+    cardUiDate[card.id] = dateInput.value;
+    unlockedCards.delete(card.id);
+    renderCards();
+  });
+  const logBtn = document.createElement('button'); logBtn.className='log-btn' + (isLoggedView ? ' is-logged' : '');
+  logBtn.textContent = isLoggedView ? 'Logged' : 'Log';
+  logBtn.addEventListener('click', ()=>{
+    if(isLoggedView){
+      unlockedCards.add(card.id);
+      renderCards();
+      return;
+    }
+    const snapshot = {};
+    card.exercises.forEach(ex=>{
+      const fieldEl = el.querySelector(`[data-ex="${ex.id}"]`);
+      snapshot[ex.id] = fieldEl ? fieldEl.value : '';
+    });
+    card.logs[date] = snapshot;
+    unlockedCards.delete(card.id);
+    saveData();
+    renderAll();
+  });
+  dateRow.appendChild(calIcon); dateRow.appendChild(dateInput); dateRow.appendChild(logBtn);
+  el.appendChild(dateRow);
+
+  if(!card.exercises.length){
+    const hint = document.createElement('div'); hint.className='empty-hint';
+    hint.textContent = 'No exercises defined for this day — edit the plan to add some.';
+    el.appendChild(hint);
+    return el;
+  }
+
+  const colHdr=document.createElement('div'); colHdr.className='col-hdr';
+  colHdr.innerHTML='<span style="text-align:center">Sets</span><span style="text-align:center">Reps</span><span></span><span style="text-align:right">Wt</span>';
+  el.appendChild(colHdr);
+
+  const defaults = existingLog || latestLoggedValues(card) || {};
+  const rows = document.createElement('div');
+  card.exercises.forEach(ex=>{
+    const row = document.createElement('div'); row.className='ex-row';
+    const setsSpan = document.createElement('span'); setsSpan.className='static-val'; setsSpan.textContent = ex.sets;
+    const repsSpan = document.createElement('span'); repsSpan.className='static-val'; repsSpan.textContent = ex.reps;
+    const nameSpan = document.createElement('span'); nameSpan.className='static-name'; nameSpan.textContent = ex.name;
+
+    const startVal = existingLog ? (existingLog[ex.id] ?? '') : (defaults[ex.id] ?? (ex.type==='band' ? BAND_OPTIONS[0] : 10));
+    const field = makeStepper(ex.type, startVal, isLoggedView, ex.id);
+
+    row.appendChild(setsSpan); row.appendChild(repsSpan); row.appendChild(nameSpan); row.appendChild(field);
+    rows.appendChild(row);
+  });
+  el.appendChild(rows);
+  return el;
+}
+
+// ============ INSIGHTS ============
+document.querySelectorAll('.period-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    currentPeriod = btn.dataset.period;
+    document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderInsights();
+  });
+});
+
+function periodRange(period, plan){
+  const now = new Date();
+  if(period==='week'){
+    const day = now.getDay();
+    const monday = new Date(now); monday.setDate(now.getDate() - ((day+6)%7)); monday.setHours(0,0,0,0);
+    const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+    return { start: monday, end: sunday, days: 7 };
+  }
+  if(period==='month'){
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth()+1, 0);
+    return { start, end, days: end.getDate() };
+  }
+  const start = new Date(plan.startDate+'T00:00:00');
+  const end = new Date(plan.endDate+'T00:00:00');
+  const days = Math.max(1, Math.round((end-start)/86400000)+1);
+  return { start, end, days };
+}
+function planDurationDays(plan){
+  const start = new Date(plan.startDate+'T00:00:00');
+  const end = new Date(plan.endDate+'T00:00:00');
+  return Math.max(1, Math.round((end-start)/86400000)+1);
+}
+function countInRange(dates, start, end){
+  return dates.filter(d=>{ const dt = new Date(d+'T00:00:00'); return dt>=start && dt<=end; }).length;
+}
+
+function renderInsights(){
+  const plan = getCurrentPlan();
+  const barsEl = document.getElementById('progress-bars');
+  const motivateEl = document.getElementById('motivate-text');
+  const labelEl = document.getElementById('progress-label');
+  const chartSelect = document.getElementById('chart-select');
+  const chartBox = document.getElementById('chart-box');
+
+  if(!plan || !plan.cards.length){
+    barsEl.innerHTML=''; motivateEl.textContent='Set up a plan with day cards to start tracking.';
+    labelEl.textContent='Sessions';
+    chartSelect.innerHTML='<option value="">Select exercise…</option>';
+    chartBox.innerHTML='pick an exercise to see its weight over time';
+    return;
+  }
+
+  const totalDays = planDurationDays(plan);
+  const range = periodRange(currentPeriod, plan);
+  const periodLabelMap = {week:'this week', month:'this month', all:'all time'};
+  labelEl.textContent = 'Sessions ' + periodLabelMap[currentPeriod];
+
+  barsEl.innerHTML='';
+  plan.cards.forEach(card=>{
+    const dates = Object.keys(card.logs);
+    const count = countInRange(dates, range.start, range.end);
+    const periodTarget = currentPeriod==='all' ? card.target : Math.max(1, Math.round(card.target * range.days / totalDays));
+    const pct = periodTarget>0 ? Math.min(100, Math.round(count/periodTarget*100)) : 0;
+    const wrap=document.createElement('div');
+    wrap.innerHTML = `<div class="prog-label"><span>${escapeHtml(card.name)}</span><span style="color:var(--tm)">${count} / ${periodTarget}</span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>`;
+    barsEl.appendChild(wrap);
+  });
+
+  const totalLoggedAllTime = plan.cards.reduce((s,c)=>s+Object.keys(c.logs).length,0);
+  const totalTargetAllTime = plan.cards.reduce((s,c)=>s+c.target,0);
+  const now = new Date();
+  const start = new Date(plan.startDate+'T00:00:00');
+  const end = new Date(plan.endDate+'T00:00:00');
+  const daysRemaining = Math.max(0, Math.round((end-now)/86400000));
+  const remainingSessions = Math.max(0, totalTargetAllTime - totalLoggedAllTime);
+  const weeksRemaining = Math.max(1, Math.round(daysRemaining/7));
+  const pace = Math.ceil(remainingSessions / weeksRemaining);
+
+  if(totalLoggedAllTime===0){
+    motivateEl.textContent = `Your plan runs ${totalDays} days — hit Log on a card once you finish a session to start tracking.`;
+  } else if(daysRemaining<=0){
+    motivateEl.textContent = `Your plan window has ended — nice work either way.`;
+  } else {
+    motivateEl.textContent = `${daysRemaining} days left — about ${pace} session${pace===1?'':'s'}/week keeps you on pace for your goal.`;
+  }
+
+  const options = [];
+  plan.cards.forEach(card=>{
+    card.exercises.forEach(ex=>{
+      if(ex.type==='band') return;
+      const hist = Object.keys(card.logs).sort().map(d=>({date:d, weight: card.logs[d][ex.id]})).filter(h=>h.weight!==undefined && h.weight!=='');
+      options.push({ key: card.id+'::'+ex.id, label: `${ex.name} (${card.name})`, hist });
+    });
+  });
+  const prevSelected = chartSelect.value;
+  chartSelect.innerHTML = '<option value="">Select exercise…</option>' + options.map(o=>`<option value="${o.key}">${escapeHtml(o.label)}</option>`).join('');
+  if(options.find(o=>o.key===prevSelected)) chartSelect.value = prevSelected;
+  drawChart(options.find(o=>o.key===chartSelect.value));
+}
+
+document.getElementById('chart-select').addEventListener('change', ()=>{
+  const plan = getCurrentPlan();
+  if(!plan) return;
+  const val = document.getElementById('chart-select').value;
+  let found=null;
+  plan.cards.forEach(card=>{
+    card.exercises.forEach(ex=>{
+      if(card.id+'::'+ex.id === val){
+        const hist = Object.keys(card.logs).sort().map(d=>({date:d, weight: card.logs[d][ex.id]})).filter(h=>h.weight!==undefined && h.weight!=='');
+        found = { label: ex.name, hist };
+      }
+    });
+  });
+  drawChart(found);
+});
+
+function niceTicks(min, max, count){
+  if(min===max) return [min];
+  const ticks=[];
+  for(let i=0;i<count;i++) ticks.push(Math.round(min + (max-min)*i/(count-1)));
+  return [...new Set(ticks)];
+}
+
+function drawChart(opt){
+  const box = document.getElementById('chart-box');
+  if(!opt || !opt.hist || !opt.hist.length){
+    box.innerHTML = 'pick an exercise to see its weight over time';
+    return;
+  }
+  const points = opt.hist.filter(h=>!isNaN(parseFloat(h.weight)));
+  if(points.length < 1){
+    box.innerHTML = 'no numeric weight history yet for this exercise';
+    return;
+  }
+  const w=280,h=110,padL=26,padR=10,padT=8,padB=18;
+  const vals = points.map(p=>parseFloat(p.weight));
+  const min=Math.min(...vals), max=Math.max(...vals);
+  const range = (max-min)||1;
+  const plotW = w-padL-padR, plotH = h-padT-padB;
+  const stepX = points.length>1 ? plotW/(points.length-1) : 0;
+  const yFor = v => padT + plotH - ((v-min)/range)*plotH;
+  const coords = points.map((p,i)=> [padL + i*stepX, yFor(parseFloat(p.weight)), p]);
+  const path = coords.map((c,i)=> (i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' ');
+  const dots = coords.map(c=>`<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="3" fill="#0E9488"/>`).join('');
+  const ticks = niceTicks(min, max, 3);
+  const gridlines = ticks.map(t=>{
+    const y = yFor(t);
+    return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w-padR}" y2="${y.toFixed(1)}" stroke="var(--bd)" stroke-width="1"/>
+      <text x="${padL-4}" y="${(y+3).toFixed(1)}" font-size="9" fill="#8A9592" text-anchor="end">${t}</text>`;
+  }).join('');
+  box.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;max-width:320px" role="img" aria-label="Weight progression chart">
+    ${gridlines}
+    <path d="${path}" fill="none" stroke="#0E9488" stroke-width="2"/>
+    ${dots}
+    <text x="${padL}" y="${h-4}" font-size="9" fill="#8A9592">${points[0].date.slice(5)}</text>
+    <text x="${w-padR}" y="${h-4}" font-size="9" fill="#8A9592" text-anchor="end">${points[points.length-1].date.slice(5)}</text>
+  </svg>`;
+}
+
+// ============ EXPORT (Ctrl/Cmd+E) ============
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `workout-backup-${todayStr()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+document.addEventListener('keydown', e=>{
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='e'){ e.preventDefault(); exportData(); }
+});
+
+// ============ INIT ============
+function renderAll(){
+  if(!state.plans.length){
+    document.getElementById('plan-bar').style.display='none';
+    cardsGrid.innerHTML='';
+    renderInsights();
+    openCreateModal();
+    return;
+  }
+  if(!currentPlanId || !getCurrentPlan()) currentPlanId = mostRecentPlanId();
+  renderPlanBar();
+  renderCards();
+  renderInsights();
+}
+
+currentPlanId = mostRecentPlanId();
+renderAll();
+</script>
+</body>
+</html>
