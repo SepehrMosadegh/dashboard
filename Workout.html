@@ -284,7 +284,7 @@ function loadData(){
 }
 function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); cloudQueueSave(); }
 
-let state = loadData();
+let state = normalizeWorkoutState(loadData());
 let currentPlanId = null;
 let currentPeriod = 'all';
 let cardUiDate = {};

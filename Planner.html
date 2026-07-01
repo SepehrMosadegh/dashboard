@@ -706,6 +706,7 @@ function renderAll(){
   buildTodo();updateStats();
 }
 loadState();
+PILLARS=normalizePillars(PILLARS);
 makeBannerEditable('banner-title');
 makeBannerEditable('banner-sub');
 renderAll();
