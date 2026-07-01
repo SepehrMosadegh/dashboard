@@ -218,13 +218,24 @@ function cloudQueueSave(){
   },900);
 }
 
+function normalizePillars(pillars){
+  if(!Array.isArray(pillars))return pillars;
+  pillars.forEach(p=>{
+    if(!Array.isArray(p.projects))p.projects=[];
+    p.projects.forEach(proj=>{
+      if(!Array.isArray(proj.tasks))proj.tasks=[];
+    });
+  });
+  return pillars;
+}
+
 function cloudApplyRemote(data){
   cloudApplyingRemote=true;
   try{
     if(data&&data.pillars){
       document.getElementById('banner-title').textContent=data.bannerTitle||'Dashboard';
       document.getElementById('banner-sub').textContent=data.bannerSub||'Career Overview';
-      PILLARS=data.pillars;
+      PILLARS=normalizePillars(data.pillars);
       localStorage.setItem('dashboard_v1',JSON.stringify(data));
       renderAll();
     }

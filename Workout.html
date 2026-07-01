@@ -204,12 +204,25 @@ function cloudQueueSave(){
   },900);
 }
 
+function normalizeWorkoutState(data){
+  if(!data||typeof data!=='object')return {plans:[]};
+  if(!Array.isArray(data.plans))data.plans=[];
+  data.plans.forEach(plan=>{
+    if(!Array.isArray(plan.cards))plan.cards=[];
+    plan.cards.forEach(card=>{
+      if(!Array.isArray(card.exercises))card.exercises=[];
+      if(!card.logs||typeof card.logs!=='object')card.logs={};
+    });
+  });
+  return data;
+}
+
 function cloudApplyRemote(data){
   cloudApplyingRemote=true;
   try{
     if(data&&data.plans){
-      state=data;
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+      state=normalizeWorkoutState(data);
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
       document.getElementById('setup-overlay').classList.remove('open');
       renderAll();
     }
