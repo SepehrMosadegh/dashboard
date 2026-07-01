@@ -257,15 +257,22 @@ document.getElementById('sync-btn').onclick=()=>{
   if(cloudUser)cloudSignOut();else cloudSignIn();
 };
 
+let cloudInitializedForUid=null;
 fbAuth.onAuthStateChanged(user=>{
   cloudUser=user;
   if(user){
     document.getElementById('sync-btn').textContent='Sign out';
+    if(cloudInitializedForUid===user.uid)return;
+    cloudInitializedForUid=user.uid;
     setSyncStatus('Connecting…','syncing');
     const ref=fbDb.ref('users/'+user.uid+'/planner');
     ref.once('value').then(snap=>{
       const remote=snap.val();
-      if(remote&&remote.pillars){
+      const localRaw=localStorage.getItem('dashboard_v1');
+      const local=localRaw?JSON.parse(localRaw):null;
+      const remoteTime=(remote&&remote.updatedAt)||0;
+      const localTime=(local&&local.updatedAt)||0;
+      if(remote&&remote.pillars&&remoteTime>=localTime){
         cloudApplyRemote(remote);
       }else{
         cloudQueueSave();
@@ -280,6 +287,7 @@ fbAuth.onAuthStateChanged(user=>{
       });
     });
   }else{
+    cloudInitializedForUid=null;
     cloudReady=false;
     document.getElementById('sync-btn').textContent='Sign in';
     setSyncStatus('Not signed in','');
@@ -322,7 +330,8 @@ function saveState(){
     localStorage.setItem('dashboard_v1',JSON.stringify({
       bannerTitle:document.getElementById('banner-title').textContent,
       bannerSub:document.getElementById('banner-sub').textContent,
-      pillars:PILLARS
+      pillars:PILLARS,
+      updatedAt:Date.now()
     }));
   }catch(e){}
   cloudQueueSave();
