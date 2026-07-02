@@ -80,6 +80,10 @@ body{font-family:var(--font);background:var(--bg);padding:1.5rem;color:var(--tp)
 .todo-tags{display:flex;align-items:center;gap:3px;flex-shrink:0}
 .todo-tag{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:500;white-space:nowrap}
 .todo-dur{font-size:10px;color:var(--tm)}
+.todo-tag-neutral{background:var(--s0);color:var(--ts)}
+.todo-dh{font-size:12px;color:var(--tm);cursor:grab;opacity:.5}
+.todo-item:hover .todo-dh{opacity:1}
+.subgroup.drag-target{background:var(--s0);outline:1.5px dashed var(--bds);border-radius:6px}
 .ov-dot{width:6px;height:6px;border-radius:50%;background:#E24B4A;flex-shrink:0}
 
 /* PILLARS */
@@ -296,13 +300,13 @@ fbAuth.onAuthStateChanged(user=>{
 </script>
 <script>
 const PC={
-  pt:{dot:'#E6F1FB',txt:'#185FA5',bar:'#185FA5',chip:'#B5D4F4',ctxt:'#0C447C',lbl:'Pillar 1',icon:'ti-school'},
-  pr:{dot:'#EEEDFE',txt:'#534AB7',bar:'#534AB7',chip:'#CECBF6',ctxt:'#3C3489',lbl:'Pillar 2',icon:'ti-microscope'},
-  pl:{dot:'#E1F5EE',txt:'#0F6E56',bar:'#0F6E56',chip:'#9FE1CB',ctxt:'#085041',lbl:'Pillar 3',icon:'ti-building'},
-  pp:{dot:'#FAEEDA',txt:'#854F0B',bar:'#854F0B',chip:'#FAC775',ctxt:'#633806',lbl:'Pillar 4',icon:'ti-award'}
+  pt:{dot:'#E6F1FB',txt:'#185FA5',bar:'#185FA5',chip:'#B5D4F4',ctxt:'#0C447C',icon:'ti-school'},
+  pr:{dot:'#EEEDFE',txt:'#534AB7',bar:'#534AB7',chip:'#CECBF6',ctxt:'#3C3489',icon:'ti-microscope'},
+  pl:{dot:'#E1F5EE',txt:'#0F6E56',bar:'#0F6E56',chip:'#9FE1CB',ctxt:'#085041',icon:'ti-building'},
+  pp:{dot:'#FAEEDA',txt:'#854F0B',bar:'#854F0B',chip:'#FAC775',ctxt:'#633806',icon:'ti-award'}
 };
 const NOW=new Date(2026,5,28);
-let dragSrc=null,dragType=null;
+let dragSrc=null,dragType=null,todoDragCtx=null;
 
 const DEFAULT_DATA=[{"id":"pt","title":"Pillar 1","projects":[]},{"id":"pr","title":"Pillar 2","projects":[]},{"id":"pl","title":"Pillar 3","projects":[]},{"id":"pp","title":"Pillar 4","projects":[]}];
 
@@ -431,10 +435,24 @@ function buildTodo(){
         const isOpen=defaultOpen;
         if(isOpen){sgitems.classList.add('open');sgchev.classList.add('open');}
         sghdr.addEventListener('click',()=>{const o=sgitems.classList.toggle('open');sgchev.classList.toggle('open',o);sgOpen[sgOpen_key]=o;});
+        sg.addEventListener('dragover',e=>{if(!todoDragCtx)return;e.preventDefault();sg.classList.add('drag-target');});
+        sg.addEventListener('dragleave',e=>{if(!sg.contains(e.relatedTarget))sg.classList.remove('drag-target');});
+        sg.addEventListener('drop',e=>{
+          e.preventDefault();sg.classList.remove('drag-target');
+          if(!todoDragCtx)return;
+          const {task:dt,pillar:dp}=todoDragCtx;
+          dt.dl=(dk==='No date')?null:dk;
+          todoDragCtx=null;
+          rerenderPillar(dp.id);updateStats();saveState();buildTodo();
+        });
 
         ditems.forEach(({task,proj,pillar})=>{
           const c=piC(pillar.id);
-          const row=document.createElement('div');row.className='todo-item';
+          const row=document.createElement('div');row.className='todo-item';row.draggable=true;
+          row.style.setProperty('--pc',c.dot);row.style.setProperty('--pt',c.txt);
+          row.addEventListener('dragstart',e=>{todoDragCtx={task,proj,pillar};e.dataTransfer.effectAllowed='move';row.style.opacity='.4';});
+          row.addEventListener('dragend',()=>{row.style.opacity='';todoDragCtx=null;document.querySelectorAll('.subgroup.drag-target').forEach(x=>x.classList.remove('drag-target'));});
+          const dh=document.createElement('i');dh.className='ti ti-grip-vertical todo-dh';
           const cb=document.createElement('input');cb.type='checkbox';cb.className='todo-cb';
           cb.addEventListener('change',function(){
             if(!this.checked)return;
@@ -447,12 +465,14 @@ function buildTodo(){
             rerenderPillar(pillar.id);updateStats();saveState();
             if(!document.querySelector('.todo-item'))root.innerHTML='<div style="font-size:11px;color:var(--tm);padding:4px 6px">All done! 🎉</div>';
           });
-          const tlbl=document.createElement('span');tlbl.className='todo-label';tlbl.textContent=task.t;
           const tags=document.createElement('div');tags.className='todo-tags';
-          const prt=document.createElement('span');prt.className='todo-tag';prt.style.cssText=`background:${c.chip};color:${c.ctxt}`;prt.textContent=proj.name.length>22?proj.name.slice(0,20)+'…':proj.name;
-          const dur=document.createElement('span');dur.className='todo-dur';dur.textContent=task.dur?task.dur+'h':'';
-          tags.appendChild(prt);if(task.dur)tags.appendChild(dur);
-          row.appendChild(cb);row.appendChild(tlbl);row.appendChild(tags);
+          const pit=document.createElement('span');pit.className='todo-tag';pit.style.cssText=`background:${c.chip};color:${c.ctxt}`;pit.textContent=pillar.title;
+          const prt=document.createElement('span');prt.className='todo-tag todo-tag-neutral';prt.textContent=proj.name.length>22?proj.name.slice(0,20)+'…':proj.name;
+          const todoResort=()=>{rerenderPillar(pillar.id);updateStats();buildTodo();};
+          const tlbl=makeTaskLabel(task,proj,todoResort);tlbl.classList.add('todo-label');
+          const durBtn=makeDurBtn(task,todoResort);durBtn.classList.add('todo-dur-wrap');
+          tags.appendChild(pit);tags.appendChild(prt);tags.appendChild(durBtn);
+          row.appendChild(dh);row.appendChild(cb);row.appendChild(tlbl);row.appendChild(tags);
           sgitems.appendChild(row);
         });
         sg.appendChild(sghdr);sg.appendChild(sgitems);body.appendChild(sg);
@@ -535,7 +555,7 @@ function makeTaskLabel(task,proj,resortCb){
       if(committed)return;committed=true;
       const v=inp.value.trim();
       if(v===''){const idx=proj.tasks.indexOf(task);if(idx>=0)proj.tasks.splice(idx,1);inp.replaceWith(lbl);resortCb();saveState();buildTodo();updateStats();return;}
-      task.t=v;lbl.textContent=v;inp.replaceWith(lbl);saveState();
+      task.t=v;lbl.textContent=v;inp.replaceWith(lbl);saveState();resortCb();
     };
     inp.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter'){ev.preventDefault();commit();}if(ev.key==='Escape'){committed=true;inp.replaceWith(lbl);}});
     inp.addEventListener('blur',()=>setTimeout(commit,100));
