@@ -122,7 +122,6 @@ body{font-family:var(--font);background:var(--bg);padding:1.5rem;color:var(--tp)
 .pill-muted{background:var(--s0);color:var(--tm);border:0.5px solid var(--bds)}
 .pill-dur{background:var(--pc,#E6F1FB);color:var(--pt,#185FA5)}
 .pill-df{background:var(--pc,#E6F1FB);color:var(--pt,#185FA5)}
-.pill-ds{background:#FAEEDA;color:#854F0B}
 .pill-do{background:#FCEBEB;color:#A32D2D}
 .pill-person{background:var(--s0);color:var(--ts);border:0.5px solid var(--bds)}
 .dropdown-wrap{position:relative}
@@ -422,12 +421,12 @@ function buildTodo(){
       });
       entries.forEach(([dk,ditems])=>{
         const d=parseDate(dk);const days=daysFrom(d);
-        const ov=days!==null&&days<0,sn=days!==null&&days<=2&&days>=0;
+        const ov=days!==null&&days<0;
         const sg=document.createElement('div');sg.className='subgroup';
         const sghdr=document.createElement('div');sghdr.className='sg-hdr';
         if(ov){const dot=document.createElement('div');dot.className='ov-dot';sghdr.appendChild(dot);}
         const sgdate=document.createElement('span');sgdate.className='sg-date';
-        sgdate.style.color=ov?'#A32D2D':sn?'#854F0B':'var(--ts)';
+        sgdate.style.color=ov?'#A32D2D':'var(--ts)';
         sgdate.textContent=(dk==='No date'?'No date':fmtDL(dk))+(ov?` (${Math.abs(days)}d overdue)`:days===0?' (today)':days===1?' (tomorrow)':'');
         const sgcnt=document.createElement('span');sgcnt.className='sg-count';sgcnt.textContent=ditems.length+' task'+(ditems.length===1?'':'s');
         const sgchev=document.createElement('i');sgchev.className='ti ti-chevron-down sg-chev';
@@ -552,7 +551,7 @@ function makeDlBtn(task,resortCb){
   function refresh(){
     if(!task.dl){btn.className='task-pill pill-muted';btn.textContent='date';return;}
     const d=parseDate(task.dl);const days=d?daysFrom(d):null;
-    btn.className='task-pill '+(days===null?'pill-df':days<0?'pill-do':days<=2?'pill-ds':'pill-df');
+    btn.className='task-pill '+(days===null?'pill-df':days<0?'pill-do':'pill-df');
     btn.textContent=task.dl;
   }
   refresh();
