@@ -801,6 +801,7 @@ function makePillarCard(pillar){
         const s=fmtMY(dls[0]),e=fmtMY(dls[dls.length-1]);
         dateStr='  ·  '+(s===e?s:s+' – '+e);
       } else if(dls.length===1)dateStr='  ·  '+fmtMY(dls[0]);
+      else if(proj.deadline)dateStr='  ·  '+fmtMY(proj.deadline);
       pmeta.textContent=rem+' task'+(rem===1?'':'s')+dateStr;
     }
     refreshMeta();
