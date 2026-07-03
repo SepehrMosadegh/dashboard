@@ -797,10 +797,10 @@ function makePillarCard(pillar){
       const dls=proj.tasks.filter(t=>t.dl).map(t=>t.dl).sort();
       let dateStr='';
       function fmtMY(s){const d=parseDate(s);if(!d)return s;return d.toLocaleDateString('en-CA',{month:'short',year:'numeric'});}
-      if(dls.length>=2&&dls[0]!==dls[dls.length-1]){
-        const s=fmtMY(dls[0]),e=fmtMY(dls[dls.length-1]);
-        dateStr='  ·  '+(s===e?s:s+' – '+e);
-      } else if(dls.length===1)dateStr='  ·  '+fmtMY(dls[0]);
+      if(dls.length>=1){
+        const first=fmtMY(dls[0]),last=fmtMY(dls[dls.length-1]);
+        dateStr='  ·  '+(first===last?first:first+' – '+last);
+      }
       else if(proj.deadline)dateStr='  ·  '+fmtMY(proj.deadline);
       pmeta.textContent=rem+' task'+(rem===1?'':'s')+dateStr;
     }
