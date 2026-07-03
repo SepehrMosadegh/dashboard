@@ -80,8 +80,9 @@ body{font-family:var(--font);background:var(--bg);padding:1.5rem;color:var(--tp)
 .todo-tags{display:flex;align-items:center;gap:3px;flex-shrink:0}
 .todo-tag{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:500;white-space:nowrap}
 .todo-dur{font-size:10px;color:var(--tm)}
-.todo-dh{font-size:12px;color:var(--tm);cursor:grab;opacity:.5}
+.todo-dh{font-size:12px;color:var(--tm);cursor:grab;opacity:.65;touch-action:none}
 .todo-item:hover .todo-dh{opacity:1}
+.todo-item.touch-dragging{opacity:.5;background:var(--s0)}
 .subgroup.drag-target{background:var(--s0);outline:1.5px dashed var(--bds);border-radius:6px}
 .todo-item.drag-over{background:var(--s0);box-shadow:inset 0 2px 0 var(--bds)}
 .ov-dot{width:6px;height:6px;border-radius:50%;background:#E24B4A;flex-shrink:0}
@@ -111,8 +112,9 @@ body{font-family:var(--font);background:var(--bg);padding:1.5rem;color:var(--tp)
 .subitems.open{display:flex}
 .subitem{display:flex;align-items:center;gap:4px;padding:3px 6px;border-radius:4px}
 .subitem:hover{background:var(--s1)}
-.sub-dh{color:var(--tm);font-size:11px;flex-shrink:0;opacity:0;cursor:grab;transition:opacity .15s}
+.sub-dh{color:var(--tm);font-size:11px;flex-shrink:0;opacity:.4;cursor:grab;transition:opacity .15s;touch-action:none}
 .subitem:hover .sub-dh{opacity:1}
+.subitem.touch-dragging{opacity:.5;background:var(--s0)}
 .sub-cb{accent-color:#534AB7;cursor:pointer;flex-shrink:0}
 .sub-lbl{font-size:11px;color:var(--ts);flex:1;line-height:1.4;cursor:text}
 .sub-lbl:hover{text-decoration:underline;text-underline-offset:2px}
@@ -148,8 +150,16 @@ body{font-family:var(--font);background:var(--bg);padding:1.5rem;color:var(--tp)
 .dur-step{background:none;border:0.5px solid var(--bds);border-radius:3px;padding:2px 8px;font-size:14px;cursor:pointer;color:var(--ts);font-family:var(--font);line-height:1.4}
 .dur-step:hover{background:var(--s0)}
 .dur-hint{font-size:10px;color:var(--tm);margin-top:5px}
-.done-div{height:0.5px;background:var(--bd);margin:3px 5px;display:none}
-.done-div.vis{display:block}
+.dur-set-btn{width:100%;margin-top:6px;padding:6px;font-size:12px;font-weight:500;font-family:var(--font);border:none;border-radius:5px;background:var(--pt,#185FA5);color:#fff;cursor:pointer}
+.dur-set-btn:hover{opacity:.9}
+.done-wrap{display:none;margin:3px 5px}
+.done-wrap.vis{display:block}
+.done-hdr{display:flex;align-items:center;gap:5px;padding:4px 3px;cursor:pointer;border-top:0.5px solid var(--bd)}
+.done-lbl{font-size:10px;color:var(--tm);font-weight:500}
+.done-chev{font-size:11px;color:var(--tm);transition:transform .15s;margin-left:auto}
+.done-chev.open{transform:rotate(180deg)}
+.done-list{display:none}
+.done-list.open{display:block}
 .pillar-footer{border-top:0.5px solid var(--bd);padding:.55rem 1.25rem}
 .add-btn{background:none;border:none;cursor:pointer;font-size:11px;color:var(--tm);display:flex;align-items:center;gap:4px;padding:3px 0;font-family:var(--font)}
 .add-btn:hover{color:var(--ts)}
@@ -157,6 +167,22 @@ body{font-family:var(--font);background:var(--bg);padding:1.5rem;color:var(--tp)
 .new-row{display:flex;align-items:center;gap:4px;padding:3px 6px;margin-left:10px}
 .new-inp{font-size:11px;padding:2px 6px;border:0.5px solid var(--bda);border-radius:4px;background:var(--s0);color:var(--tp);font-family:var(--font);outline:none;flex:1}
 .ie-inp{font-size:inherit;font-weight:inherit;padding:1px 4px;border:0.5px solid var(--bda);border-radius:3px;background:var(--s0);color:var(--tp);font-family:var(--font);outline:none}
+@media(max-width:640px){
+  body{padding:.75rem}
+  .dash{gap:.6rem}
+  .banner{flex-direction:column;align-items:flex-start;gap:.75rem;padding:1rem}
+  .stats{gap:1.25rem;align-self:stretch;justify-content:space-between}
+  .sync-box{margin-left:0;align-self:stretch;justify-content:space-between}
+  .pillars-grid{grid-template-columns:1fr;gap:.75rem}
+  .todo-item{flex-wrap:wrap;padding:6px 8px}
+  .todo-label{flex-basis:100%;order:1}
+  .todo-tags{margin-left:22px;order:2}
+  .todo-dh,.sub-dh{opacity:.6}
+  .task-pill{padding:3px 7px;font-size:12px}
+  .todo-cb,.sub-cb{width:16px;height:16px}
+  .pillar-title{font-size:15px}
+  .stat-num{font-size:19px}
+}
 </style>
 </head>
 <body>
@@ -423,6 +449,7 @@ function buildTodo(){
         const d=parseDate(dk);const days=daysFrom(d);
         const ov=days!==null&&days<0;
         const sg=document.createElement('div');sg.className='subgroup';
+        sg._dk=dk;sg._ditems=ditems;
         const sghdr=document.createElement('div');sghdr.className='sg-hdr';
         if(ov){const dot=document.createElement('div');dot.className='ov-dot';sghdr.appendChild(dot);}
         const sgdate=document.createElement('span');sgdate.className='sg-date';
@@ -441,24 +468,34 @@ function buildTodo(){
         else{defaultOpen=false;}
         if(defaultOpen){sgitems.classList.add('open');sgchev.classList.add('open');}
         sghdr.addEventListener('click',()=>{const o=sgitems.classList.toggle('open');sgchev.classList.toggle('open',o);sgOpen[sgOpen_key]=o;});
-        sg.addEventListener('dragover',e=>{if(!todoDragCtx)return;e.preventDefault();sg.classList.add('drag-target');});
-        sg.addEventListener('dragleave',e=>{if(!sg.contains(e.relatedTarget))sg.classList.remove('drag-target');});
-        sg.addEventListener('drop',e=>{
-          e.preventDefault();sg.classList.remove('drag-target');
+        function finalizeMove(targetTask){
           if(!todoDragCtx)return;
           const {task:dt,pillar:dp}=todoDragCtx;
           todoDragCtx=null;
           dt.dl=(dk==='No date')?null:dk;
           const without=ditems.filter(it=>it.task!==dt);
-          without.push({task:dt});
+          if(targetTask){
+            const insertAt=without.findIndex(it=>it.task===targetTask);
+            without.splice(insertAt>=0?insertAt:without.length,0,{task:dt});
+          }else{
+            without.push({task:dt});
+          }
           without.forEach((it,i)=>{it.task.order=i*10;});
           rerenderPillar(dp.id);updateStats();saveState();buildTodo();
+        }
+        sg._finalizeMove=finalizeMove;
+        sg.addEventListener('dragover',e=>{if(!todoDragCtx)return;e.preventDefault();sg.classList.add('drag-target');});
+        sg.addEventListener('dragleave',e=>{if(!sg.contains(e.relatedTarget))sg.classList.remove('drag-target');});
+        sg.addEventListener('drop',e=>{
+          e.preventDefault();sg.classList.remove('drag-target');
+          finalizeMove(null);
         });
 
         ditems.forEach(({task,proj,pillar})=>{
           const c=piC(pillar.id);
           const row=document.createElement('div');row.className='todo-item';row.draggable=true;
           row.style.setProperty('--pc',c.dot);row.style.setProperty('--pt',c.txt);
+          row._task=task;
           row.addEventListener('dragstart',e=>{todoDragCtx={task,proj,pillar};e.dataTransfer.effectAllowed='move';row.style.opacity='.4';});
           row.addEventListener('dragend',()=>{row.style.opacity='';todoDragCtx=null;document.querySelectorAll('.subgroup.drag-target,.todo-item.drag-over').forEach(x=>x.classList.remove('drag-target','drag-over'));});
           row.addEventListener('dragover',e=>{if(!todoDragCtx||todoDragCtx.task===task)return;e.preventDefault();e.stopPropagation();row.classList.add('drag-over');});
@@ -466,17 +503,50 @@ function buildTodo(){
           row.addEventListener('drop',e=>{
             e.preventDefault();e.stopPropagation();
             row.classList.remove('drag-over');sg.classList.remove('drag-target');
-            if(!todoDragCtx||todoDragCtx.task===task)return;
-            const {task:dt,pillar:dp}=todoDragCtx;
-            todoDragCtx=null;
-            dt.dl=(dk==='No date')?null:dk;
-            const without=ditems.filter(it=>it.task!==dt);
-            const insertAt=without.findIndex(it=>it.task===task);
-            without.splice(insertAt,0,{task:dt});
-            without.forEach((it,i)=>{it.task.order=i*10;});
-            rerenderPillar(dp.id);updateStats();saveState();buildTodo();
+            finalizeMove(task);
           });
           const dh=document.createElement('i');dh.className='ti ti-grip-vertical todo-dh';
+          dh.style.touchAction='none';
+          dh.addEventListener('pointerdown',e=>{
+            if(e.pointerType==='mouse')return;
+            e.preventDefault();
+            const pid=e.pointerId;
+            todoDragCtx={task,proj,pillar};
+            row.classList.add('touch-dragging');
+            try{dh.setPointerCapture(pid);}catch(err){}
+            const clearHl=()=>document.querySelectorAll('.subgroup.drag-target,.todo-item.drag-over').forEach(x=>x.classList.remove('drag-target','drag-over'));
+            const move=ev=>{
+              if(ev.pointerId!==pid)return;
+              clearHl();
+              const el=document.elementFromPoint(ev.clientX,ev.clientY);
+              if(!el)return;
+              const targetRow=el.closest('.todo-item');
+              const targetSg=el.closest('.subgroup');
+              if(targetRow&&targetRow!==row)targetRow.classList.add('drag-over');
+              else if(targetSg)targetSg.classList.add('drag-target');
+            };
+            const up=ev=>{
+              if(ev.pointerId!==pid)return;
+              document.removeEventListener('pointermove',move);
+              document.removeEventListener('pointerup',up);
+              document.removeEventListener('pointercancel',up);
+              row.classList.remove('touch-dragging');
+              clearHl();
+              const el=document.elementFromPoint(ev.clientX,ev.clientY);
+              const targetRow=el&&el.closest('.todo-item');
+              const targetSg=el&&el.closest('.subgroup');
+              if(targetRow&&targetRow._task&&targetRow.closest('.subgroup')&&targetRow.closest('.subgroup')._finalizeMove){
+                targetRow.closest('.subgroup')._finalizeMove(targetRow._task);
+              }else if(targetSg&&targetSg._finalizeMove){
+                targetSg._finalizeMove(null);
+              }else{
+                todoDragCtx=null;
+              }
+            };
+            document.addEventListener('pointermove',move);
+            document.addEventListener('pointerup',up);
+            document.addEventListener('pointercancel',up);
+          });
           const cb=document.createElement('input');cb.type='checkbox';cb.className='todo-cb';
           cb.addEventListener('change',function(){
             if(!this.checked)return;
@@ -532,6 +602,8 @@ function makeDurBtn(task,resortCb){
   minus.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();const v=Math.max(0.5,+(parseFloat(inp.value||1)-1).toFixed(1));inp.value=v;setTimeout(()=>inp.focus(),10);});
   plus.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();const v=+(parseFloat(inp.value||0)+1).toFixed(1);inp.value=v;setTimeout(()=>inp.focus(),10);});
   const hint=document.createElement('div');hint.className='dur-hint';hint.textContent='Enter to save · Esc to cancel';
+  const setBtn=document.createElement('button');setBtn.type='button';setBtn.className='dur-set-btn';setBtn.textContent='Set';
+  setBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();saveDur();});
   inp.addEventListener('click',e=>e.stopPropagation());
   function saveDur(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>0){task.dur=v;prevVal=v;refresh();resortCb();saveState();buildTodo();}pop.classList.remove('open');}
   inp.addEventListener('blur',()=>setTimeout(()=>{if(pop.classList.contains('open'))saveDur();},80));
@@ -540,7 +612,7 @@ function makeDurBtn(task,resortCb){
     if(ev.key==='Escape'){inp.value=prevVal;pop.classList.remove('open');}
   });
   row.appendChild(minus);row.appendChild(inp);row.appendChild(plus);
-  pop.appendChild(lbl);pop.appendChild(row);pop.appendChild(hint);
+  pop.appendChild(lbl);pop.appendChild(row);pop.appendChild(setBtn);pop.appendChild(hint);
   btn.onclick=e=>{e.stopPropagation();const wasOpen=pop.classList.contains('open');closeAll(null);if(!wasOpen){prevVal=task.dur||1;inp.value=prevVal;pop.classList.add('open');setTimeout(()=>{inp.focus();inp.select();},30);}};
   wrap.appendChild(btn);wrap.appendChild(pop);return wrap;
 }
@@ -589,13 +661,14 @@ function makeTaskLabel(task,proj,resortCb){
 
 function renderTasks(proj,subs,addBtn,donediv,metaEl,pillar){
   [...subs.querySelectorAll('.subitem')].forEach(i=>i.remove());
+  const doneList=donediv.querySelector('.done-list');
   donediv.classList.remove('vis');
   const resort=()=>{renderTasks(proj,subs,addBtn,donediv,metaEl,pillar);updateStats();buildTodo();saveState();};
   const active=proj.tasks.filter(t=>!t.done).sort((a,b)=>{const da=parseDate(a.dl),db=parseDate(b.dl);if(da&&db){if(da-db!==0)return da-db;return (a.order||0)-(b.order||0);}if(da)return -1;if(db)return 1;return (a.order||0)-(b.order||0);});
   active.forEach(t=>subs.insertBefore(makeSubEl(t,proj,resort,pillar),donediv));
   const done=proj.tasks.filter(t=>t.done);
-  if(done.length)donediv.classList.add('vis');
-  done.forEach(t=>subs.insertBefore(makeSubEl(t,proj,resort,pillar),addBtn));
+  if(done.length){donediv.classList.add('vis');donediv.querySelector('.done-lbl').textContent='Completed ('+done.length+')';}
+  done.forEach(t=>doneList.appendChild(makeSubEl(t,proj,resort,pillar)));
   if(typeof metaEl.refreshMeta==='function')metaEl.refreshMeta();
   else{const rem=proj.tasks.filter(t=>!t.done).length;metaEl.textContent=rem+' task'+(rem===1?'':'s');}
 }
@@ -611,6 +684,18 @@ function makeSubEl(task,proj,resortCb,pillar){
   right.appendChild(makeDlBtn(task,resortCb));
   div._task=task;
   div.appendChild(dh);div.appendChild(cb);div.appendChild(lbl);div.appendChild(right);
+  function finishSubReorder(){
+    const parent=div.parentNode;
+    const allItems=[...parent.querySelectorAll(':scope > .subitem')];
+    const newOrder=allItems.map(el=>el._task).filter(Boolean);
+    if(newOrder.length>0){
+      const missing=proj.tasks.filter(t=>!newOrder.includes(t));
+      proj.tasks.splice(0,proj.tasks.length,...newOrder,...missing);
+      newOrder.forEach((t,i)=>{t.order=i*10;});
+    }
+    saveState();
+    buildTodo();
+  }
   div.addEventListener('dragstart',e=>{dragSrc=div;dragType='task';e.dataTransfer.effectAllowed='move';div.style.opacity='.4';});
   div.addEventListener('dragend',()=>{div.style.opacity='';dragSrc=null;});
   div.addEventListener('dragover',e=>{if(dragType!=='task'||!dragSrc||dragSrc===div||div.dataset.done==='1'||dragSrc.dataset.done==='1')return;e.preventDefault();div.classList.add('drag-over');});
@@ -618,19 +703,38 @@ function makeSubEl(task,proj,resortCb,pillar){
   div.addEventListener('drop',e=>{
     e.preventDefault();div.classList.remove('drag-over');
     if(dragSrc&&dragSrc!==div&&dragType==='task'){
-      const parent=div.parentNode;
-      parent.insertBefore(dragSrc,div);
-      // Sync array: collect active items in new DOM order, preserve done items order
-      const allItems=[...parent.querySelectorAll(':scope > .subitem')];
-      const newOrder=allItems.map(el=>el._task).filter(Boolean);
-      if(newOrder.length>0){
-        const missing=proj.tasks.filter(t=>!newOrder.includes(t));
-        proj.tasks.splice(0,proj.tasks.length,...newOrder,...missing);
-        newOrder.forEach((t,i)=>{t.order=i*10;});
-      }
-      saveState();
-      buildTodo();
+      div.parentNode.insertBefore(dragSrc,div);
+      finishSubReorder();
     }
+  });
+  dh.style.touchAction='none';
+  dh.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse')return;
+    e.preventDefault();
+    const pid=e.pointerId,parent=div.parentNode;
+    div.classList.add('touch-dragging');
+    try{dh.setPointerCapture(pid);}catch(err){}
+    const move=ev=>{
+      if(ev.pointerId!==pid)return;
+      const sibs=[...parent.querySelectorAll(':scope > .subitem')].filter(el=>el!==div);
+      const y=ev.clientY;let placed=false;
+      for(const sib of sibs){
+        const r=sib.getBoundingClientRect();
+        if(y<r.top+r.height/2){parent.insertBefore(div,sib);placed=true;break;}
+      }
+      if(!placed&&sibs.length)parent.insertBefore(div,sibs[sibs.length-1].nextSibling);
+    };
+    const up=ev=>{
+      if(ev.pointerId!==pid)return;
+      document.removeEventListener('pointermove',move);
+      document.removeEventListener('pointerup',up);
+      document.removeEventListener('pointercancel',up);
+      div.classList.remove('touch-dragging');
+      finishSubReorder();
+    };
+    document.addEventListener('pointermove',move);
+    document.addEventListener('pointerup',up);
+    document.addEventListener('pointercancel',up);
   });
   return div;
 }
@@ -706,7 +810,14 @@ function makePillarCard(pillar){
     phdr.appendChild(pdh);phdr.appendChild(pdot);phdr.appendChild(pinfo);phdr.appendChild(pchev);
 
     const subs=document.createElement('div');subs.className='subitems';
-    const donediv=document.createElement('div');donediv.className='done-div';
+    const donediv=document.createElement('div');donediv.className='done-wrap';
+    const doneHdr=document.createElement('div');doneHdr.className='done-hdr';
+    const doneLbl=document.createElement('span');doneLbl.className='done-lbl';doneLbl.textContent='Completed';
+    const doneChev=document.createElement('i');doneChev.className='ti ti-chevron-down done-chev';
+    doneHdr.appendChild(doneLbl);doneHdr.appendChild(doneChev);
+    const doneList=document.createElement('div');doneList.className='done-list';
+    doneHdr.addEventListener('click',()=>{const o=doneList.classList.toggle('open');doneChev.classList.toggle('open',o);});
+    donediv.appendChild(doneHdr);donediv.appendChild(doneList);
     const addTaskBtn=document.createElement('button');addTaskBtn.className='add-btn';
     addTaskBtn.style.cssText='margin-left:8px;margin-bottom:3px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--tm);display:flex;align-items:center;gap:3px;font-family:var(--font)';
     addTaskBtn.innerHTML='<i class="ti ti-plus"></i> Add task';
