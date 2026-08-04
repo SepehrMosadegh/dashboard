@@ -45,19 +45,17 @@ button:disabled:hover{background:var(--s1)}
 .plan-select:focus{box-shadow:none}
 
 /* INSIGHTS */
-.card{background:var(--s1);border:0.5px solid var(--bd);border-radius:12px;padding:1.1rem 1.3rem}
+.card{background:var(--s1);border:0.5px solid var(--bd);border-radius:12px;padding:1.1rem 1.3rem;min-width:0}
 .eyebrow{font-size:11px;font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.06em}
 .insights-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
 .insights-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:stretch}
 .insights-col{display:flex;flex-direction:column;min-height:0}
-.insights-col.chart-col{position:relative}
-.chart-select-overlay{position:absolute;top:6px;right:6px;height:22px;font-size:10px;padding:0 6px;z-index:2;background:var(--s1)}
+.chart-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;border:1px dashed var(--bds);border-radius:8px;color:var(--tm);font-size:12px;text-align:center;padding:8px 4px;overflow:auto}
 @media(max-width:640px){.insights-grid{grid-template-columns:1fr}}
 .prog-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
 .prog-track{height:8px;background:var(--s0);border-radius:4px;overflow:hidden;margin-bottom:10px}
 .prog-fill{height:100%;background:var(--bda);border-radius:4px;transition:width .2s}
 .motivate{background:#E4F3F1;border-radius:8px;padding:10px 12px;font-size:12px;color:#0B5D54;line-height:1.5;margin-top:6px}
-.chart-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;border:1px dashed var(--bds);border-radius:8px;color:var(--tm);font-size:12px;text-align:center;padding:26px 8px 8px;overflow:auto}
 .chart-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px}
 .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ts);cursor:pointer;user-select:none;background:none;border:none;padding:0}
 .legend-item.static{cursor:default}
@@ -73,10 +71,10 @@ button:disabled:hover{background:var(--s1)}
 .cal-cell.out-of-range{opacity:.35}
 
 /* DAY CARDS */
-.cards-grid{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:1rem}
+.cards-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:1rem}
 @media(max-width:640px){.cards-grid{grid-auto-flow:row;grid-auto-columns:unset;grid-template-columns:1fr}}
 .day-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.day-name-input{font-weight:500;font-size:15px;width:100%}
+.day-name-label{font-weight:500;font-size:15px;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .date-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}
 .date-row input[type=date]{flex:1;font-size:12px;height:30px}
 .log-btn{height:30px;padding:0 12px;font-size:12px;white-space:nowrap;font-weight:500}
@@ -84,7 +82,7 @@ button:disabled:hover{background:var(--s1)}
 .col-hdr{display:grid;grid-template-columns:26px 26px 1fr 92px;gap:6px;font-size:10px;color:var(--tm);padding:0 0 4px;text-transform:uppercase;letter-spacing:.03em}
 .ex-row{display:grid;grid-template-columns:26px 26px 1fr 92px;gap:6px;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bd)}
 .static-val{font-size:13px;text-align:center;color:var(--ts)}
-.static-name{font-size:13px}
+.static-name{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .stepper{display:flex;align-items:center;justify-content:flex-end;gap:2px}
 .stepper button{width:20px;height:26px;padding:0;font-size:14px;line-height:1;flex-shrink:0}
 .stepper input{width:34px;height:26px;text-align:center;font-size:12px;padding:0}
@@ -136,6 +134,7 @@ button:disabled:hover{background:var(--s1)}
   <div class="card">
     <div class="insights-hdr">
       <span class="eyebrow">Progress tracker</span>
+      <select id="chart-select" style="height:26px;font-size:11px"></select>
     </div>
     <div class="insights-grid">
       <div class="insights-col">
@@ -143,7 +142,6 @@ button:disabled:hover{background:var(--s1)}
         <div class="motivate" id="motivate-text"></div>
       </div>
       <div class="insights-col chart-col">
-        <select id="chart-select" class="chart-select-overlay"></select>
         <div class="chart-box" id="chart-box">pick a workout day to see progress</div>
         <div class="chart-legend" id="chart-legend"></div>
       </div>
@@ -544,16 +542,9 @@ function makeCardEl(plan, card){
   const isLoggedView = !!existingLog && !isUnlocked;
 
   const hdr = document.createElement('div'); hdr.className='day-card-hdr';
-  const nameInput = document.createElement('input');
-  nameInput.type='text'; nameInput.className='day-name-input plain-input'; nameInput.value=card.name;
-  nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); nameInput.blur(); } });
-  nameInput.addEventListener('blur', ()=>{
-    const v = nameInput.value.trim();
-    card.name = v || card.name;
-    nameInput.value = card.name;
-    saveData(); renderPlanBar(); renderInsights();
-  });
-  hdr.appendChild(nameInput);
+  const nameLabel = document.createElement('div');
+  nameLabel.className='day-name-label'; nameLabel.textContent = card.name; nameLabel.title = card.name;
+  hdr.appendChild(nameLabel);
   el.appendChild(hdr);
 
   const dateRow = document.createElement('div'); dateRow.className='date-row';
@@ -604,7 +595,7 @@ function makeCardEl(plan, card){
     const row = document.createElement('div'); row.className='ex-row';
     const setsSpan = document.createElement('span'); setsSpan.className='static-val'; setsSpan.textContent = ex.sets;
     const repsSpan = document.createElement('span'); repsSpan.className='static-val'; repsSpan.textContent = ex.reps;
-    const nameSpan = document.createElement('span'); nameSpan.className='static-name'; nameSpan.textContent = ex.name;
+    const nameSpan = document.createElement('span'); nameSpan.className='static-name'; nameSpan.textContent = ex.name; nameSpan.title = ex.name;
 
     const startVal = existingLog ? (existingLog[ex.id] ?? '') : (defaults[ex.id] ?? (ex.type==='band' ? BAND_OPTIONS[0] : 10));
     const field = makeStepper(ex.type, startVal, isLoggedView, ex.id);
