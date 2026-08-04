@@ -62,9 +62,11 @@ button:disabled:hover{background:var(--s1)}
 .legend-item.static{cursor:default}
 .legend-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .legend-item.off{color:var(--tm);text-decoration:line-through;opacity:.55}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;width:100%;max-width:260px}
-.cal-cell{aspect-ratio:1;border-radius:3px;background:var(--s2,rgba(0,0,0,.04));border:1px solid var(--bds)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;width:100%;max-width:180px}
+.cal-dow{font-size:8px;color:var(--tm);text-align:center;line-height:14px}
+.cal-cell{aspect-ratio:1;border-radius:2px;background:var(--s2,rgba(0,0,0,.04));border:1px solid var(--bds);font-size:7px;display:flex;align-items:center;justify-content:center;color:var(--tm)}
 .cal-cell.empty{visibility:hidden}
+.cal-cell.filled{color:#fff;border-color:transparent}
 
 /* DAY CARDS */
 .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
@@ -129,18 +131,16 @@ button:disabled:hover{background:var(--s1)}
 
   <div class="card">
     <div class="insights-hdr">
-      <span class="eyebrow">Insights</span>
+      <span class="eyebrow">Progress tracker</span>
     </div>
     <div class="insights-grid">
       <div class="insights-col">
-        <div id="progress-label" style="font-size:12px;color:var(--ts);margin-bottom:8px">Sessions</div>
         <div id="progress-bars"></div>
         <div class="motivate" id="motivate-text"></div>
       </div>
       <div class="insights-col">
         <div class="chart-hdr">
-          <span style="font-size:12px;color:var(--ts)">Progress tracker</span>
-          <select id="chart-select" style="height:26px;font-size:11px"></select>
+          <select id="chart-select" style="height:26px;font-size:11px;margin-left:auto"></select>
         </div>
         <div class="chart-box" id="chart-box">pick a workout day to see progress</div>
         <div class="chart-legend" id="chart-legend"></div>
@@ -302,7 +302,7 @@ function saveData(){ state.updatedAt=Date.now(); localStorage.setItem(STORAGE_KE
 let state = normalizeWorkoutState(loadData());
 let currentPlanId = null;
 let chartSelectedValue = '__all__';
-let hiddenChartExercises = new Set();
+let visibleChartExercises = new Set();
 const CHART_COLORS = ['#0E9488','#3B82F6','#F59E0B','#A855F7','#EF4444','#10B981','#6366F1','#EC4899'];
 let cardUiDate = {};
 let unlockedCards = new Set();
@@ -625,14 +625,12 @@ function renderInsights(){
   const plan = getCurrentPlan();
   const barsEl = document.getElementById('progress-bars');
   const motivateEl = document.getElementById('motivate-text');
-  const labelEl = document.getElementById('progress-label');
   const chartSelect = document.getElementById('chart-select');
   const chartBox = document.getElementById('chart-box');
   const legendEl = document.getElementById('chart-legend');
 
   if(!plan || !plan.cards.length){
     barsEl.innerHTML=''; motivateEl.textContent='Set up a plan with day cards to start tracking.';
-    labelEl.textContent='Sessions';
     chartSelect.innerHTML='';
     chartBox.innerHTML='pick a workout day to see progress';
     legendEl.innerHTML='';
@@ -640,7 +638,6 @@ function renderInsights(){
   }
 
   const totalDays = planDurationDays(plan);
-  labelEl.textContent = 'Sessions';
 
   barsEl.innerHTML='';
   plan.cards.forEach(card=>{
@@ -667,7 +664,7 @@ function renderInsights(){
   } else if(daysRemaining<=0){
     motivateEl.textContent = `Your plan window has ended — nice work either way.`;
   } else {
-    motivateEl.textContent = `${daysRemaining} days left — about ${pace} session${pace===1?'':'s'}/week keeps you on pace for your goal.`;
+    motivateEl.textContent = `${daysRemaining} days left — ${pace} session${pace===1?'':'s'}/week keeps you on pace for your goal.`;
   }
 
   // Build "select workout day" dropdown: plan name (entire plan) first, then each day
@@ -683,7 +680,7 @@ function renderInsights(){
 
 document.getElementById('chart-select').addEventListener('change', ()=>{
   chartSelectedValue = document.getElementById('chart-select').value;
-  hiddenChartExercises = new Set();
+  visibleChartExercises = new Set();
   const plan = getCurrentPlan();
   if(plan) renderChartPanel(plan);
 });
@@ -728,7 +725,7 @@ function drawEntirePlanCalendar(plan){
   const end = new Date(plan.endDate+'T00:00:00');
 
   const cells = [];
-  const lead = (start.getDay()+6)%7; // pad so week starts Monday
+  const lead = start.getDay(); // pad so week starts Sunday
   for(let i=0;i<lead;i++) cells.push(null);
   const cur = new Date(start);
   while(cur<=end){ cells.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
@@ -739,12 +736,21 @@ function drawEntirePlanCalendar(plan){
     const key = toDateStr(d);
     const card = dayMap[key];
     const idx = card ? plan.cards.indexOf(card) : -1;
-    const style = idx>=0 ? `background:${CHART_COLORS[idx % CHART_COLORS.length]};border-color:transparent` : '';
+    const filled = idx>=0;
+    const style = filled ? `background:${CHART_COLORS[idx % CHART_COLORS.length]}` : '';
     const title = card ? `${fmtDate(key)} – ${card.name}` : fmtDate(key);
-    return `<div class="cal-cell" title="${escapeHtml(title)}" style="${style}"></div>`;
+    return `<div class="cal-cell${filled?' filled':''}" title="${escapeHtml(title)}" style="${style}">${d.getDate()}</div>`;
   }).join('');
 
-  box.innerHTML = `<div class="cal-grid">${cellHtml}</div>`;
+  const dowHtml = ['S','M','T','W','T','F','S'].map(l=>`<div class="cal-dow">${l}</div>`).join('');
+  box.innerHTML = `<div class="cal-grid">${dowHtml}${cellHtml}</div>`;
+}
+
+function niceTicks(min, max, count){
+  if(min===max) return [min];
+  const ticks=[];
+  for(let i=0;i<count;i++) ticks.push(Math.round((min + (max-min)*i/(count-1))*10)/10);
+  return [...new Set(ticks)];
 }
 
 function drawDayChart(card){
@@ -777,40 +783,57 @@ function drawDayChart(card){
   });
 
   legendEl.innerHTML = series.map(s=>
-    `<button type="button" class="legend-item${hiddenChartExercises.has(s.id)?' off':''}" data-ex="${s.id}"><span class="dot" style="background:${s.color}"></span>${escapeHtml(s.name)}</button>`
+    `<button type="button" class="legend-item${visibleChartExercises.has(s.id)?'':' off'}" data-ex="${s.id}"><span class="dot" style="background:${s.color}"></span>${escapeHtml(s.name)}</button>`
   ).join('');
   legendEl.querySelectorAll('.legend-item').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const id = btn.dataset.ex;
-      if(hiddenChartExercises.has(id)) hiddenChartExercises.delete(id); else hiddenChartExercises.add(id);
+      if(visibleChartExercises.has(id)) visibleChartExercises.delete(id); else visibleChartExercises.add(id);
       const plan = getCurrentPlan();
       if(plan) renderChartPanel(plan);
     });
   });
 
-  const visibleSeries = series.filter(s=> !hiddenChartExercises.has(s.id) && s.points.length);
+  const visibleSeries = series.filter(s=> visibleChartExercises.has(s.id) && s.points.length);
   if(!visibleSeries.length){
-    box.innerHTML = series.some(s=>s.points.length) ? 'all curves hidden — click a legend item to show it again' : 'no numeric history yet for this day';
+    box.innerHTML = series.some(s=>s.points.length) ? 'click a legend item to show its curve' : 'no numeric history yet for this day';
     return;
   }
 
-  const w=280,h=110,padL=10,padR=10,padT=8,padB=18;
+  const w=280,h=110,padL=26,padR=10,padT=8,padB=18;
   const plotW = w-padL-padR, plotH = h-padT-padB;
   const stepX = dates.length>1 ? plotW/(dates.length-1) : 0;
   const xFor = i => padL + i*stepX;
 
-  // Each exercise's own curve is normalized to its own min/max so different
-  // units (weight vs. band level) can be compared as relative progress.
-  const gridlines = [0,0.5,1].map(t=>{
-    const y = padT + plotH - t*plotH;
-    return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w-padR}" y2="${y.toFixed(1)}" stroke="var(--bd)" stroke-width="1"/>`;
+  const single = visibleSeries.length===1;
+  let ticks, tickLabel, yForSeries;
+
+  if(single){
+    const vals = visibleSeries[0].points.map(p=>p.val);
+    const min = Math.min(...vals), max = Math.max(...vals);
+    const range = (max-min)||1;
+    ticks = niceTicks(min, max, 4);
+    tickLabel = t => String(t);
+    yForSeries = () => v => padT + plotH - ((v-min)/range)*plotH;
+  } else {
+    ticks = [0,50,100];
+    tickLabel = t => t+'%';
+    yForSeries = (s) => {
+      const vals = s.points.map(p=>p.val);
+      const min = Math.min(...vals), max = Math.max(...vals);
+      const range = (max-min)||1;
+      return v => padT + plotH - ((v-min)/range)*plotH;
+    };
+  }
+
+  const gridlines = ticks.map(t=>{
+    const y = single ? yForSeries()(t) : (padT + plotH - (t/100)*plotH);
+    return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w-padR}" y2="${y.toFixed(1)}" stroke="var(--bd)" stroke-width="1"/>
+      <text x="${padL-4}" y="${(y+3).toFixed(1)}" font-size="8" fill="#8A9592" text-anchor="end">${tickLabel(t)}</text>`;
   }).join('');
 
   const paths = visibleSeries.map(s=>{
-    const vals = s.points.map(p=>p.val);
-    const min = Math.min(...vals), max = Math.max(...vals);
-    const range = (max-min)||1;
-    const yFor = v => padT + plotH - ((v-min)/range)*plotH;
+    const yFor = yForSeries(s);
     const coords = s.points.map(p=> [xFor(dates.indexOf(p.date)), yFor(p.val)]);
     const path = coords.map((c,i)=>(i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' ');
     const dots = coords.map(c=>`<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="2.5" fill="${s.color}"/>`).join('');
@@ -820,8 +843,8 @@ function drawDayChart(card){
   box.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;max-width:320px" role="img" aria-label="Progress chart">
     ${gridlines}
     ${paths}
-    <text x="${padL}" y="${h-4}" font-size="9" fill="#8A9592">${dates[0].slice(5)}</text>
-    <text x="${w-padR}" y="${h-4}" font-size="9" fill="#8A9592" text-anchor="end">${dates[dates.length-1].slice(5)}</text>
+    <text x="${padL}" y="${h-4}" font-size="9" fill="#8A9592">1</text>
+    <text x="${w-padR}" y="${h-4}" font-size="9" fill="#8A9592" text-anchor="end">${dates.length}</text>
   </svg>`;
 }
 
