@@ -50,13 +50,14 @@ button:disabled:hover{background:var(--s1)}
 .insights-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
 .insights-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:stretch}
 .insights-col{display:flex;flex-direction:column;min-height:0}
+.insights-col.chart-col{position:relative}
+.chart-select-overlay{position:absolute;top:6px;right:6px;height:22px;font-size:10px;padding:0 6px;z-index:2;background:var(--s1)}
 @media(max-width:640px){.insights-grid{grid-template-columns:1fr}}
 .prog-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
 .prog-track{height:8px;background:var(--s0);border-radius:4px;overflow:hidden;margin-bottom:10px}
 .prog-fill{height:100%;background:var(--bda);border-radius:4px;transition:width .2s}
 .motivate{background:#E4F3F1;border-radius:8px;padding:10px 12px;font-size:12px;color:#0B5D54;line-height:1.5;margin-top:6px}
-.chart-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
-.chart-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;border:1px dashed var(--bds);border-radius:8px;color:var(--tm);font-size:12px;text-align:center;padding:.5rem;overflow:auto}
+.chart-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;border:1px dashed var(--bds);border-radius:8px;color:var(--tm);font-size:12px;text-align:center;padding:26px 8px 8px;overflow:auto}
 .chart-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px}
 .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ts);cursor:pointer;user-select:none;background:none;border:none;padding:0}
 .legend-item.static{cursor:default}
@@ -68,12 +69,12 @@ button:disabled:hover{background:var(--s1)}
 .cal-weeks{flex:1;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(6,1fr);gap:2px;min-height:0}
 .cal-cell{border-radius:3px;background:var(--s2,rgba(0,0,0,.04));border:1px solid var(--bds);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--tm)}
 .cal-cell.empty{visibility:hidden}
-.cal-cell.filled{color:#fff;border-color:transparent}
+.cal-cell.filled{background:var(--bda);color:#fff;border-color:transparent}
 .cal-cell.out-of-range{opacity:.35}
 
 /* DAY CARDS */
-.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-@media(max-width:640px){.cards-grid{grid-template-columns:1fr}}
+.cards-grid{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:1rem}
+@media(max-width:640px){.cards-grid{grid-auto-flow:row;grid-auto-columns:unset;grid-template-columns:1fr}}
 .day-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .day-name-input{font-weight:500;font-size:15px;width:100%}
 .date-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}
@@ -141,10 +142,8 @@ button:disabled:hover{background:var(--s1)}
         <div id="progress-bars"></div>
         <div class="motivate" id="motivate-text"></div>
       </div>
-      <div class="insights-col">
-        <div class="chart-hdr">
-          <select id="chart-select" style="height:26px;font-size:11px;margin-left:auto"></select>
-        </div>
+      <div class="insights-col chart-col">
+        <select id="chart-select" class="chart-select-overlay"></select>
         <div class="chart-box" id="chart-box">pick a workout day to see progress</div>
         <div class="chart-legend" id="chart-legend"></div>
       </div>
@@ -737,22 +736,17 @@ function toDateStr(d){
 function drawMonthCalendar(plan, monthDate){
   const box = document.getElementById('chart-box');
   const legendEl = document.getElementById('chart-legend');
+  legendEl.innerHTML = '';
 
   if(!plan.cards.length){
     box.innerHTML = 'set up day cards to start tracking';
-    legendEl.innerHTML = '';
     return;
   }
 
-  // legend: one swatch per workout day type used in this plan
-  legendEl.innerHTML = plan.cards.map((c,i)=>
-    `<span class="legend-item static"><span class="dot" style="background:${CHART_COLORS[i % CHART_COLORS.length]}"></span>${escapeHtml(c.name)}</span>`
-  ).join('');
-
-  // date -> first card logged that day
-  const dayMap = {};
+  // date -> true if any card was logged that day
+  const loggedDates = new Set();
   plan.cards.forEach(card=>{
-    Object.keys(card.logs).forEach(d=>{ if(!dayMap[d]) dayMap[d] = card; });
+    Object.keys(card.logs).forEach(d=> loggedDates.add(d));
   });
 
   const planStart = new Date(plan.startDate+'T00:00:00');
@@ -772,13 +766,10 @@ function drawMonthCalendar(plan, monthDate){
   const cellHtml = cells.map(d=>{
     if(!d) return `<div class="cal-cell empty"></div>`;
     const key = toDateStr(d);
-    const card = dayMap[key];
-    const idx = card ? plan.cards.indexOf(card) : -1;
-    const filled = idx>=0;
+    const filled = loggedDates.has(key);
     const outOfRange = d<planStart || d>planEnd;
-    const style = filled ? `background:${CHART_COLORS[idx % CHART_COLORS.length]}` : '';
-    const title = card ? `${fmtDate(key)} – ${card.name}` : fmtDate(key);
-    return `<div class="cal-cell${filled?' filled':''}${outOfRange?' out-of-range':''}" title="${escapeHtml(title)}" style="${style}">${d.getDate()}</div>`;
+    const title = fmtDate(key);
+    return `<div class="cal-cell${filled?' filled':''}${outOfRange?' out-of-range':''}" title="${escapeHtml(title)}">${d.getDate()}</div>`;
   }).join('');
 
   const dowHtml = ['S','M','T','W','T','F','S'].map(l=>`<div class="cal-dow">${l}</div>`).join('');
