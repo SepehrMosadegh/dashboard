@@ -62,11 +62,14 @@ button:disabled:hover{background:var(--s1)}
 .legend-item.static{cursor:default}
 .legend-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .legend-item.off{color:var(--tm);text-decoration:line-through;opacity:.55}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;width:100%;max-width:180px}
-.cal-dow{font-size:8px;color:var(--tm);text-align:center;line-height:14px}
-.cal-cell{aspect-ratio:1;border-radius:2px;background:var(--s2,rgba(0,0,0,.04));border:1px solid var(--bds);font-size:7px;display:flex;align-items:center;justify-content:center;color:var(--tm)}
+.cal-wrap{display:flex;flex-direction:column;height:100%;width:100%;max-width:320px}
+.cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);flex-shrink:0;margin-bottom:2px}
+.cal-dow{font-size:9px;color:var(--tm);text-align:center}
+.cal-weeks{flex:1;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(6,1fr);gap:2px;min-height:0}
+.cal-cell{border-radius:3px;background:var(--s2,rgba(0,0,0,.04));border:1px solid var(--bds);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--tm)}
 .cal-cell.empty{visibility:hidden}
 .cal-cell.filled{color:#fff;border-color:transparent}
+.cal-cell.out-of-range{opacity:.35}
 
 /* DAY CARDS */
 .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
@@ -667,12 +670,25 @@ function renderInsights(){
     motivateEl.textContent = `${daysRemaining} days left — ${pace} session${pace===1?'':'s'}/week keeps you on pace for your goal.`;
   }
 
-  // Build "select workout day" dropdown: plan name (entire plan) first, then each day
+  // Build "select workout day" dropdown: one entry per plan-month first, then each day
+  const months = planMonths(plan);
   const prevSelected = chartSelectedValue;
-  chartSelect.innerHTML = `<option value="__all__">${escapeHtml(plan.name)}</option>` +
-    plan.cards.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-  const stillValid = prevSelected==='__all__' || plan.cards.find(c=>c.id===prevSelected);
-  chartSelectedValue = stillValid ? prevSelected : '__all__';
+  const monthValue = m => `__month__${m.year}-${String(m.month+1).padStart(2,'0')}`;
+  let monthOptionsHtml, validMonthValues;
+  if(months.length<=1){
+    monthOptionsHtml = `<option value="__all__">${escapeHtml(plan.name)}</option>`;
+    validMonthValues = ['__all__'];
+  } else {
+    monthOptionsHtml = months.map(m=>{
+      const label = new Date(m.year, m.month, 1).toLocaleDateString('en-US',{month:'short',year:'numeric'});
+      return `<option value="${monthValue(m)}">${escapeHtml(plan.name)} · ${label}</option>`;
+    }).join('');
+    validMonthValues = months.map(monthValue);
+  }
+  chartSelect.innerHTML = monthOptionsHtml + plan.cards.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+  const validValues = new Set([...validMonthValues, ...plan.cards.map(c=>c.id)]);
+  chartSelectedValue = validValues.has(prevSelected) ? prevSelected : validMonthValues[0];
   chartSelect.value = chartSelectedValue;
 
   renderChartPanel(plan);
@@ -685,14 +701,32 @@ document.getElementById('chart-select').addEventListener('change', ()=>{
   if(plan) renderChartPanel(plan);
 });
 
+function planMonths(plan){
+  const start = new Date(plan.startDate+'T00:00:00');
+  const end = new Date(plan.endDate+'T00:00:00');
+  const months = [];
+  const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+  while(cur<=endMonth){
+    months.push({ year: cur.getFullYear(), month: cur.getMonth() });
+    cur.setMonth(cur.getMonth()+1);
+  }
+  return months;
+}
+
 function renderChartPanel(plan){
   const legendEl = document.getElementById('chart-legend');
   if(chartSelectedValue === '__all__'){
-    drawEntirePlanCalendar(plan);
+    drawMonthCalendar(plan, new Date(plan.startDate+'T00:00:00'));
+    return;
+  }
+  if(chartSelectedValue.indexOf('__month__')===0){
+    const [y,m] = chartSelectedValue.replace('__month__','').split('-').map(Number);
+    drawMonthCalendar(plan, new Date(y, m-1, 1));
     return;
   }
   const card = plan.cards.find(c=>c.id===chartSelectedValue);
-  if(!card){ legendEl.innerHTML=''; drawEntirePlanCalendar(plan); return; }
+  if(!card){ legendEl.innerHTML=''; drawMonthCalendar(plan, new Date(plan.startDate+'T00:00:00')); return; }
   drawDayChart(card);
 }
 
@@ -700,7 +734,7 @@ function toDateStr(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 
-function drawEntirePlanCalendar(plan){
+function drawMonthCalendar(plan, monthDate){
   const box = document.getElementById('chart-box');
   const legendEl = document.getElementById('chart-legend');
 
@@ -721,15 +755,19 @@ function drawEntirePlanCalendar(plan){
     Object.keys(card.logs).forEach(d=>{ if(!dayMap[d]) dayMap[d] = card; });
   });
 
-  const start = new Date(plan.startDate+'T00:00:00');
-  const end = new Date(plan.endDate+'T00:00:00');
+  const planStart = new Date(plan.startDate+'T00:00:00');
+  const planEnd = new Date(plan.endDate+'T00:00:00');
+
+  const year = monthDate.getFullYear(), month = monthDate.getMonth();
+  const firstOfMonth = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const lead = firstOfMonth.getDay(); // pad so week starts Sunday
 
   const cells = [];
-  const lead = start.getDay(); // pad so week starts Sunday
-  for(let i=0;i<lead;i++) cells.push(null);
-  const cur = new Date(start);
-  while(cur<=end){ cells.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
-  while(cells.length%7!==0) cells.push(null);
+  for(let i=0;i<42;i++){
+    const dayNum = i - lead + 1;
+    cells.push(dayNum>=1 && dayNum<=daysInMonth ? new Date(year, month, dayNum) : null);
+  }
 
   const cellHtml = cells.map(d=>{
     if(!d) return `<div class="cal-cell empty"></div>`;
@@ -737,13 +775,17 @@ function drawEntirePlanCalendar(plan){
     const card = dayMap[key];
     const idx = card ? plan.cards.indexOf(card) : -1;
     const filled = idx>=0;
+    const outOfRange = d<planStart || d>planEnd;
     const style = filled ? `background:${CHART_COLORS[idx % CHART_COLORS.length]}` : '';
     const title = card ? `${fmtDate(key)} – ${card.name}` : fmtDate(key);
-    return `<div class="cal-cell${filled?' filled':''}" title="${escapeHtml(title)}" style="${style}">${d.getDate()}</div>`;
+    return `<div class="cal-cell${filled?' filled':''}${outOfRange?' out-of-range':''}" title="${escapeHtml(title)}" style="${style}">${d.getDate()}</div>`;
   }).join('');
 
   const dowHtml = ['S','M','T','W','T','F','S'].map(l=>`<div class="cal-dow">${l}</div>`).join('');
-  box.innerHTML = `<div class="cal-grid">${dowHtml}${cellHtml}</div>`;
+  box.innerHTML = `<div class="cal-wrap">
+    <div class="cal-dow-row">${dowHtml}</div>
+    <div class="cal-weeks">${cellHtml}</div>
+  </div>`;
 }
 
 function niceTicks(min, max, count){
@@ -774,7 +816,8 @@ function drawDayChart(card){
       const raw = card.logs[d][ex.id];
       let val = null;
       if(raw!==undefined && raw!==''){
-        val = ex.type==='band' ? BAND_OPTIONS.indexOf(raw) : parseFloat(raw);
+        // Resistance bands are treated as numeric weight-equivalents: LB=10, DB=20
+        val = ex.type==='band' ? (raw==='LB'?10 : raw==='DB'?20 : NaN) : parseFloat(raw);
         if(isNaN(val) || val<0) val = null;
       }
       return { date: d, val };
@@ -805,35 +848,21 @@ function drawDayChart(card){
   const stepX = dates.length>1 ? plotW/(dates.length-1) : 0;
   const xFor = i => padL + i*stepX;
 
-  const single = visibleSeries.length===1;
-  let ticks, tickLabel, yForSeries;
-
-  if(single){
-    const vals = visibleSeries[0].points.map(p=>p.val);
-    const min = Math.min(...vals), max = Math.max(...vals);
-    const range = (max-min)||1;
-    ticks = niceTicks(min, max, 4);
-    tickLabel = t => String(t);
-    yForSeries = () => v => padT + plotH - ((v-min)/range)*plotH;
-  } else {
-    ticks = [0,50,100];
-    tickLabel = t => t+'%';
-    yForSeries = (s) => {
-      const vals = s.points.map(p=>p.val);
-      const min = Math.min(...vals), max = Math.max(...vals);
-      const range = (max-min)||1;
-      return v => padT + plotH - ((v-min)/range)*plotH;
-    };
-  }
+  // All exercises (weights and resistance bands alike) now share one real-number
+  // scale, since band levels are mapped to weight-equivalent numbers above.
+  const allVals = visibleSeries.flatMap(s=>s.points.map(p=>p.val));
+  const min = Math.min(...allVals), max = Math.max(...allVals);
+  const range = (max-min)||1;
+  const yFor = v => padT + plotH - ((v-min)/range)*plotH;
+  const ticks = niceTicks(min, max, 4);
 
   const gridlines = ticks.map(t=>{
-    const y = single ? yForSeries()(t) : (padT + plotH - (t/100)*plotH);
+    const y = yFor(t);
     return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w-padR}" y2="${y.toFixed(1)}" stroke="var(--bd)" stroke-width="1"/>
-      <text x="${padL-4}" y="${(y+3).toFixed(1)}" font-size="8" fill="#8A9592" text-anchor="end">${tickLabel(t)}</text>`;
+      <text x="${padL-4}" y="${(y+3).toFixed(1)}" font-size="8" fill="#8A9592" text-anchor="end">${t}</text>`;
   }).join('');
 
   const paths = visibleSeries.map(s=>{
-    const yFor = yForSeries(s);
     const coords = s.points.map(p=> [xFor(dates.indexOf(p.date)), yFor(p.val)]);
     const path = coords.map((c,i)=>(i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' ');
     const dots = coords.map(c=>`<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="2.5" fill="${s.color}"/>`).join('');
