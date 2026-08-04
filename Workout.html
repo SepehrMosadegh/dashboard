@@ -162,6 +162,7 @@ button:disabled:hover{background:var(--s1)}
     <button class="add-day-block-btn" id="setup-add-day"><i class="ti ti-plus" style="font-size:13px;vertical-align:-2px;margin-right:5px"></i>Add day</button>
     <div class="hint">Set the exercises, sets, and reps for each day here. You'll only log weight from the cards afterward.</div>
     <div class="modal-actions">
+      <button id="setup-delete" style="display:none;color:#c0392b;margin-right:auto">Delete plan</button>
       <button id="setup-cancel">Cancel</button>
       <button class="primary-btn" id="setup-create">Create plan</button>
     </div>
@@ -383,6 +384,7 @@ function openCreateModal(){
   document.getElementById('setup-end').value = end.toISOString().slice(0,10);
   setupState = { cards: [blankSetupCard(0), blankSetupCard(1)] };
   renderSetupCards();
+  document.getElementById('setup-delete').style.display = 'none';
   setupOverlay.classList.add('open');
 }
 function openEditModal(){
@@ -400,11 +402,24 @@ function openEditModal(){
   })) };
   if(!setupState.cards.length) setupState.cards.push(blankSetupCard(0));
   renderSetupCards();
+  document.getElementById('setup-delete').style.display = '';
   setupOverlay.classList.add('open');
 }
 document.getElementById('edit-plan-btn').addEventListener('click', openEditModal);
 document.getElementById('setup-cancel').addEventListener('click', ()=>{
   if(state.plans.length) setupOverlay.classList.remove('open');
+});
+document.getElementById('setup-delete').addEventListener('click', ()=>{
+  const plan = state.plans.find(p=>p.id===editingPlanId);
+  if(!plan) return;
+  if(!confirm(`Delete "${plan.name}"? This will permanently remove its plan and all logged workouts. This cannot be undone.`)) return;
+  state.plans = state.plans.filter(p=>p.id!==editingPlanId);
+  if(currentPlanId===editingPlanId) currentPlanId = null;
+  editingPlanId = null;
+  cardUiDate = {}; unlockedCards = new Set();
+  saveData();
+  setupOverlay.classList.remove('open');
+  renderAll();
 });
 document.getElementById('setup-create').addEventListener('click', ()=>{
   const name = document.getElementById('setup-name').value.trim() || ('Plan ' + (state.plans.length+1));
