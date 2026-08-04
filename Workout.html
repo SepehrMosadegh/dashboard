@@ -48,23 +48,23 @@ button:disabled:hover{background:var(--s1)}
 .card{background:var(--s1);border:0.5px solid var(--bd);border-radius:12px;padding:1.1rem 1.3rem}
 .eyebrow{font-size:11px;font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.06em}
 .insights-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.insights-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.insights-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:stretch}
+.insights-col{display:flex;flex-direction:column;min-height:0}
 @media(max-width:640px){.insights-grid{grid-template-columns:1fr}}
 .prog-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
 .prog-track{height:8px;background:var(--s0);border-radius:4px;overflow:hidden;margin-bottom:10px}
 .prog-fill{height:100%;background:var(--bda);border-radius:4px;transition:width .2s}
 .motivate{background:#E4F3F1;border-radius:8px;padding:10px 12px;font-size:12px;color:#0B5D54;line-height:1.5;margin-top:6px}
 .chart-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
-.chart-box{display:flex;align-items:center;justify-content:center;min-height:130px;border:1px dashed var(--bds);border-radius:8px;color:var(--tm);font-size:12px;text-align:center;padding:.5rem}
+.chart-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;border:1px dashed var(--bds);border-radius:8px;color:var(--tm);font-size:12px;text-align:center;padding:.5rem;overflow:auto}
 .chart-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px}
 .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ts);cursor:pointer;user-select:none;background:none;border:none;padding:0}
+.legend-item.static{cursor:default}
 .legend-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .legend-item.off{color:var(--tm);text-decoration:line-through;opacity:.55}
-.log-list{width:100%;max-height:150px;overflow-y:auto;text-align:left}
-.log-list-item{display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:5px 2px;border-bottom:1px solid var(--bds)}
-.log-list-item:last-child{border-bottom:none}
-.log-list-item .lname{color:var(--tp);font-weight:500}
-.log-list-item .ldate{color:var(--tm)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;width:100%;max-width:260px}
+.cal-cell{aspect-ratio:1;border-radius:3px;background:var(--s2,rgba(0,0,0,.04));border:1px solid var(--bds)}
+.cal-cell.empty{visibility:hidden}
 
 /* DAY CARDS */
 .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
@@ -132,12 +132,12 @@ button:disabled:hover{background:var(--s1)}
       <span class="eyebrow">Insights</span>
     </div>
     <div class="insights-grid">
-      <div>
+      <div class="insights-col">
         <div id="progress-label" style="font-size:12px;color:var(--ts);margin-bottom:8px">Sessions</div>
         <div id="progress-bars"></div>
         <div class="motivate" id="motivate-text"></div>
       </div>
-      <div>
+      <div class="insights-col">
         <div class="chart-hdr">
           <span style="font-size:12px;color:var(--ts)">Progress tracker</span>
           <select id="chart-select" style="height:26px;font-size:11px"></select>
@@ -670,9 +670,9 @@ function renderInsights(){
     motivateEl.textContent = `${daysRemaining} days left — about ${pace} session${pace===1?'':'s'}/week keeps you on pace for your goal.`;
   }
 
-  // Build "select workout day" dropdown: Entire plan first, then each day
+  // Build "select workout day" dropdown: plan name (entire plan) first, then each day
   const prevSelected = chartSelectedValue;
-  chartSelect.innerHTML = '<option value="__all__">Entire plan</option>' +
+  chartSelect.innerHTML = `<option value="__all__">${escapeHtml(plan.name)}</option>` +
     plan.cards.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
   const stillValid = prevSelected==='__all__' || plan.cards.find(c=>c.id===prevSelected);
   chartSelectedValue = stillValid ? prevSelected : '__all__';
@@ -691,29 +691,60 @@ document.getElementById('chart-select').addEventListener('change', ()=>{
 function renderChartPanel(plan){
   const legendEl = document.getElementById('chart-legend');
   if(chartSelectedValue === '__all__'){
-    legendEl.innerHTML = '';
-    drawEntirePlanLog(plan);
+    drawEntirePlanCalendar(plan);
     return;
   }
   const card = plan.cards.find(c=>c.id===chartSelectedValue);
-  if(!card){ legendEl.innerHTML=''; drawEntirePlanLog(plan); return; }
+  if(!card){ legendEl.innerHTML=''; drawEntirePlanCalendar(plan); return; }
   drawDayChart(card);
 }
 
-function drawEntirePlanLog(plan){
+function toDateStr(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function drawEntirePlanCalendar(plan){
   const box = document.getElementById('chart-box');
-  const entries = [];
-  plan.cards.forEach(card=>{
-    Object.keys(card.logs).forEach(date=> entries.push({ date, name: card.name }));
-  });
-  if(!entries.length){
-    box.innerHTML = 'no sessions logged yet for this plan';
+  const legendEl = document.getElementById('chart-legend');
+
+  if(!plan.cards.length){
+    box.innerHTML = 'set up day cards to start tracking';
+    legendEl.innerHTML = '';
     return;
   }
-  entries.sort((a,b)=> b.date.localeCompare(a.date));
-  box.innerHTML = `<div class="log-list">${entries.map(e=>
-    `<div class="log-list-item"><span class="lname">${escapeHtml(e.name)}</span><span class="ldate">${fmtDate(e.date)}</span></div>`
-  ).join('')}</div>`;
+
+  // legend: one swatch per workout day type used in this plan
+  legendEl.innerHTML = plan.cards.map((c,i)=>
+    `<span class="legend-item static"><span class="dot" style="background:${CHART_COLORS[i % CHART_COLORS.length]}"></span>${escapeHtml(c.name)}</span>`
+  ).join('');
+
+  // date -> first card logged that day
+  const dayMap = {};
+  plan.cards.forEach(card=>{
+    Object.keys(card.logs).forEach(d=>{ if(!dayMap[d]) dayMap[d] = card; });
+  });
+
+  const start = new Date(plan.startDate+'T00:00:00');
+  const end = new Date(plan.endDate+'T00:00:00');
+
+  const cells = [];
+  const lead = (start.getDay()+6)%7; // pad so week starts Monday
+  for(let i=0;i<lead;i++) cells.push(null);
+  const cur = new Date(start);
+  while(cur<=end){ cells.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
+  while(cells.length%7!==0) cells.push(null);
+
+  const cellHtml = cells.map(d=>{
+    if(!d) return `<div class="cal-cell empty"></div>`;
+    const key = toDateStr(d);
+    const card = dayMap[key];
+    const idx = card ? plan.cards.indexOf(card) : -1;
+    const style = idx>=0 ? `background:${CHART_COLORS[idx % CHART_COLORS.length]};border-color:transparent` : '';
+    const title = card ? `${fmtDate(key)} – ${card.name}` : fmtDate(key);
+    return `<div class="cal-cell" title="${escapeHtml(title)}" style="${style}"></div>`;
+  }).join('');
+
+  box.innerHTML = `<div class="cal-grid">${cellHtml}</div>`;
 }
 
 function drawDayChart(card){
