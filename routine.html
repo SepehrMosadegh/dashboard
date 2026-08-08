@@ -22,11 +22,11 @@
 .sync-btn:hover{background:var(--s0)}
 body{font-family:var(--font);background:var(--bg);padding:1.5rem;color:var(--tp);line-height:1.4}
 .dash{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.9rem}
-input,select,button,textarea{font-family:var(--font);color:var(--tp)}
-input[type=text],input[type=number],input[type=date],input[type=time],select,textarea{
+input,select,button{font-family:var(--font);color:var(--tp)}
+input[type=text],input[type=number],input[type=date],input[type=time],select{
   border:0.5px solid var(--bds);border-radius:6px;background:var(--s2);padding:4px 6px;outline:none;font-size:13px;
 }
-input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[type=time]:focus,select:focus,textarea:focus{border-color:var(--bda);box-shadow:0 0 0 1px var(--bda)}
+input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[type=time]:focus,select:focus{border-color:var(--bda);box-shadow:0 0 0 1px var(--bda)}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 input[type=number]{-moz-appearance:textfield}
 button{border:0.5px solid var(--bds);border-radius:6px;background:var(--s1);cursor:pointer;color:var(--ts);transition:background .12s}
@@ -39,13 +39,13 @@ button:disabled:hover{background:var(--s1)}
 .plain-input:focus{box-shadow:none;border:none}
 
 /* TOP TABS */
-.tabbar{display:flex;align-items:center;gap:4px;border-bottom:0.5px solid var(--bd);padding-bottom:0}
-.tab{background:none;border:none;border-bottom:2px solid transparent;border-radius:0;padding:8px 14px;font-size:14px;color:var(--tm);margin-bottom:-1px}
-.tab:hover{background:none;color:var(--ts)}
-.tab.active{color:var(--tp);border-bottom-color:var(--bda);font-weight:500}
-.tab .ti{font-size:15px;vertical-align:-2px;margin-right:6px}
-.tabbar .spacer{flex:1}
-.tabbar a.tab{text-decoration:none;display:inline-block}
+.topbar{display:flex;align-items:center;gap:4px}
+.tab-btn{border:0.5px solid transparent;background:transparent;font-size:14px;color:var(--ts);height:32px;padding:0 14px;border-radius:7px}
+.tab-btn:hover{background:var(--s0)}
+.tab-btn.active{background:var(--s1);border-color:var(--bd);color:var(--tp);font-weight:500}
+.tab-spacer{flex:1}
+.tab-pane{display:none;flex-direction:column;gap:.9rem}
+.tab-pane.active{display:flex}
 
 /* PLAN BANNER */
 .plan-bar{background:var(--s1);border:0.5px solid var(--bd);border-radius:10px;padding:.6rem .9rem;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--ts)}
@@ -97,6 +97,67 @@ button:disabled:hover{background:var(--s1)}
 .stepper input{width:34px;height:26px;text-align:center;font-size:12px;padding:0}
 .empty-hint{font-size:12px;color:var(--tm);padding:.5rem 0}
 
+/* ===== ROUTINE ===== */
+.rt-subtabs{display:flex;gap:16px;border-bottom:0.5px solid var(--bd)}
+.rt-subtab{border:none;background:none;border-radius:0;font-size:13px;color:var(--ts);padding:7px 0;border-bottom:2px solid transparent}
+.rt-subtab:hover{background:none;color:var(--tp)}
+.rt-subtab.active{color:var(--tp);font-weight:500;border-bottom-color:var(--tp)}
+.rt-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rt-daylabel{font-size:14px;font-weight:500;min-width:140px;text-align:center}
+.rt-small-btn{height:28px;padding:0 10px;font-size:12px}
+.rt-small-btn.on{border-color:var(--bda);color:var(--bda);background:#E4F3F1}
+.rt-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media(max-width:640px){.rt-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rt-metric{background:var(--s0);border-radius:8px;padding:10px 12px;min-width:0}
+.rt-metric .l{font-size:11px;color:var(--ts);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt-metric .v{font-size:20px;font-weight:500;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt-group-hdr{display:flex;align-items:center;gap:6px;margin:14px 0 6px}
+.rt-group-name{font-size:11px;font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;border:none;background:transparent;padding:0;max-width:200px}
+.rt-group-name:focus{box-shadow:none;color:var(--tp)}
+.rt-rows{background:var(--s1);border:0.5px solid var(--bd);border-radius:10px}
+.rt-rows.empty{border-style:dashed;padding:10px 12px;font-size:12px;color:var(--tm)}
+.rt-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:0.5px solid var(--bd);background:var(--s1);touch-action:none}
+.rt-row:last-child{border-bottom:none}
+.rt-row:first-child{border-radius:10px 10px 0 0}
+.rt-row:last-child{border-radius:0 0 10px 10px}
+.rt-row.dragging{opacity:.55}
+.rt-row.na{opacity:.45}
+.rt-handle{cursor:grab;color:var(--tm);font-size:15px;display:flex;align-items:center;flex-shrink:0}
+.rt-check{width:21px;height:21px;border-radius:50%;border:1.5px solid var(--bds);background:transparent;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
+.rt-check.done{background:var(--bda);border-color:var(--bda);color:#fff}
+.rt-check.skipped{border-style:dashed;color:var(--tm)}
+.rt-check.linked{border-style:dotted;cursor:default}
+.rt-name{flex:1;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rt-name .sub{font-size:11px;color:var(--tm);margin-left:6px}
+.rt-hint{font-size:11px;color:var(--tm);white-space:nowrap;flex-shrink:0}
+.rt-note{border:0.5px solid var(--bd);border-radius:6px;height:30px;font-size:12px;width:190px;background:var(--s2);flex-shrink:0}
+@media(max-width:640px){.rt-note{width:120px}}
+.rt-time{height:30px;font-size:12px;flex-shrink:0}
+.rt-pill{font-size:11px;padding:3px 10px;border-radius:6px;background:#E4F3F1;color:#0B5D54;white-space:nowrap}
+.rt-pill.grey{background:var(--s0);color:var(--tm)}
+.rt-addblock{width:100%;border-style:dashed;font-size:12px;height:32px;margin-top:6px}
+.rt-menu{position:absolute;background:var(--s1);border:0.5px solid var(--bds);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.12);padding:4px;z-index:600;min-width:150px}
+.rt-menu button{display:block;width:100%;text-align:left;border:none;background:none;font-size:13px;padding:7px 10px;border-radius:5px;color:var(--tp)}
+.rt-menu button:hover{background:var(--s0)}
+.rt-menu button.danger{color:#B3261E}
+
+/* STATS */
+.rt-seg{display:flex;gap:4px}
+.rt-seg button{height:28px;padding:0 13px;font-size:12px}
+.rt-seg button.active{background:#E4F3F1;border-color:var(--bda);color:#0B5D54;font-weight:500}
+.rt-mx-head,.rt-mx-row{display:grid;gap:4px;align-items:center}
+.rt-mx-row{margin-bottom:4px}
+.rt-mx-label{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border:none;text-align:left;padding:0;color:var(--tp)}
+.rt-mx-label:hover{background:none;color:var(--bda)}
+.rt-mx-cell{height:22px;border-radius:3px;background:var(--s0)}
+.rt-mx-cell.f{background:var(--bda)}
+.rt-mx-cell.na{background:transparent;border:1px dashed var(--bd)}
+.rt-mx-pct{font-size:12px;color:var(--ts);text-align:right}
+.rt-mx-tick{font-size:9px;color:var(--tm);text-align:center;overflow:hidden;white-space:nowrap}
+.rt-detail{background:var(--s2);border:0.5px solid var(--bd);border-radius:8px;padding:10px;margin:2px 0 8px}
+.rt-legend-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--tm);margin-top:12px;flex-wrap:wrap}
+.rt-legend-swatch{width:20px;height:11px;border-radius:2px;background:var(--bda)}
+
 /* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(18,36,33,.35);display:none;align-items:flex-start;justify-content:center;padding:4vh 1rem;z-index:500;overflow:auto}
 .overlay.open{display:flex}
@@ -105,6 +166,7 @@ button:disabled:hover{background:var(--s1)}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;color:var(--ts);margin-bottom:4px}
 .field input{width:100%;height:34px}
+.field select{width:100%;height:34px}
 .field-row{display:flex;gap:10px}
 .field-row .field{flex:1}
 .setup-card-block{border:0.5px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--s2)}
@@ -117,61 +179,14 @@ button:disabled:hover{background:var(--s1)}
 .setup-ex-row select{width:84px;height:30px}
 .setup-add-ex{font-size:11px;height:28px;padding:0 8px;border-style:dashed}
 .add-day-block-btn{width:100%;border-style:dashed;font-size:13px;height:36px}
-.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;flex-wrap:wrap}
 .modal-actions button{height:34px;padding:0 14px;font-size:13px}
 .primary-btn{background:var(--bda);color:#fff;border-color:var(--bda)}
 .primary-btn:hover{background:#0B7B71}
 .hint{font-size:11px;color:var(--tm);margin-top:4px}
-
-/* ============ ROUTINE ============ */
-.rt-topbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.rt-datenav{display:flex;align-items:center;gap:4px;background:var(--s1);border:0.5px solid var(--bd);border-radius:8px;padding:3px 4px}
-.rt-datenav .lbl{font-size:13px;font-weight:500;min-width:112px;text-align:center}
-.rt-subtabs{display:flex;gap:4px;margin-left:auto}
-.rt-pill{font-size:12px;padding:6px 13px;border-radius:6px;border:0.5px solid var(--bd);background:var(--s1);color:var(--ts)}
-.rt-pill.on{background:#E4F3F1;border-color:var(--bda);color:#0B5D54;font-weight:500}
-.rt-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-@media(max-width:640px){.rt-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.rt-metric{background:var(--s1);border:0.5px solid var(--bd);border-radius:10px;padding:.7rem .85rem}
-.rt-metric .k{font-size:11px;color:var(--tm);margin-bottom:3px}
-.rt-metric .v{font-size:21px;font-weight:500;line-height:1.1}
-.rt-group{margin-top:.2rem}
-.rt-group-hdr{display:flex;align-items:center;gap:6px;margin:0 0 6px 2px}
-.rt-group-name{font-size:11px;font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;border:none;background:transparent;padding:2px 0;max-width:220px}
-.rt-group-name:focus{box-shadow:none;border-bottom:1px solid var(--bda)}
-.rt-list{background:var(--s1);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden}
-.rt-row{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-bottom:0.5px solid var(--bd);background:var(--s1)}
-.rt-row:last-child{border-bottom:none}
-.rt-row.skipped{opacity:.45}
-.rt-row.dragging{opacity:.35}
-.rt-row.drop-target{box-shadow:inset 0 2px 0 var(--bda)}
-.rt-handle{cursor:grab;color:var(--tm);font-size:16px;touch-action:none;padding-top:2px}
-.rt-tick{background:none;border:none;padding:0;font-size:19px;color:var(--tm);line-height:1;flex-shrink:0;margin-top:1px}
-.rt-tick:hover{background:none;color:var(--bda)}
-.rt-tick.done{color:var(--bda)}
-.rt-main{flex:1;min-width:0}
-.rt-name{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rt-sub{font-size:11px;color:var(--tm);margin-top:2px}
-.rt-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.rt-ctrl input[type=time]{height:28px;font-size:12px;width:96px}
-.rt-note{width:100%;margin-top:7px;height:30px;font-size:12px}
-.rt-badge{font-size:11px;padding:3px 9px;border-radius:6px;background:#E4F3F1;color:#0B5D54;white-space:nowrap}
-.rt-badge.grey{background:var(--s0);color:var(--tm)}
-.rt-mini{width:26px;height:26px;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
-.rt-add-row{width:100%;border:none;border-top:0.5px dashed var(--bds);border-radius:0;font-size:12px;height:34px;color:var(--tm);background:var(--s2)}
-.rt-daypills{display:flex;gap:5px;flex-wrap:wrap}
-.rt-daypill{width:34px;height:30px;font-size:12px;padding:0;display:flex;align-items:center;justify-content:center}
-.rt-daypill.on{background:#E4F3F1;border-color:var(--bda);color:#0B5D54;font-weight:500}
-.rt-matrix{display:grid;gap:5px;align-items:center;margin-bottom:5px}
-.rt-mlabel{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.rt-mlabel.total{font-weight:500}
-.rt-cell{height:24px;border-radius:3px;background:var(--bda)}
-.rt-cell.na{background:transparent;border:1px dashed var(--bd)}
-.rt-cell.zero{background:var(--s0)}
-.rt-mpct{font-size:11px;color:var(--ts);text-align:right;font-variant-numeric:tabular-nums}
-.rt-axis{font-size:9px;color:var(--tm);text-align:center;overflow:hidden;white-space:nowrap}
-.rt-scale{display:flex;align-items:center;gap:7px;margin-top:14px;font-size:11px;color:var(--tm);flex-wrap:wrap}
-.rt-swatch{width:22px;height:11px;border-radius:2px;background:var(--bda)}
+.rt-days{display:flex;gap:6px}
+.rt-days button{width:34px;height:32px;font-size:12px;padding:0}
+.rt-days button.on{background:#E4F3F1;border-color:var(--bda);color:#0B5D54;font-weight:500}
 </style>
 </head>
 <body>
@@ -181,68 +196,65 @@ button:disabled:hover{background:var(--s1)}
     <button id="sync-btn" class="sync-btn">Sign in</button>
   </div>
 
-  <div class="tabbar">
-    <button class="tab active" id="tab-btn-routine"><i class="ti ti-sun"></i>Routine</button>
-    <button class="tab" id="tab-btn-workout"><i class="ti ti-barbell"></i>Workout</button>
-    <span class="spacer"></span>
-    <a class="tab" href="Planner.html"><i class="ti ti-layout-grid"></i>Planner</a>
+  <div class="topbar">
+    <button class="tab-btn active" data-tab="routine">Routine</button>
+    <button class="tab-btn" data-tab="workout">Workout</button>
+    <span class="tab-spacer"></span>
   </div>
 
   <!-- ============ ROUTINE TAB ============ -->
-  <div id="pane-routine">
-    <div class="rt-topbar" style="margin-bottom:.9rem">
-      <div class="rt-datenav" id="rt-datenav">
-        <button class="icon-btn" id="rt-prev" title="Previous day"><i class="ti ti-chevron-left" style="font-size:14px"></i></button>
-        <span class="lbl" id="rt-date-label"></span>
-        <button class="icon-btn" id="rt-next" title="Next day"><i class="ti ti-chevron-right" style="font-size:14px"></i></button>
-        <button class="rt-pill" id="rt-today-btn" style="margin-left:2px">Today</button>
-      </div>
-      <div class="rt-subtabs">
-        <button class="rt-pill on" id="rt-sub-today">Today</button>
-        <button class="rt-pill" id="rt-sub-stats">Stats</button>
-        <button class="rt-pill" id="rt-edit-toggle" style="margin-left:6px"><i class="ti ti-pencil" style="font-size:12px;vertical-align:-2px;margin-right:4px"></i>Edit</button>
-      </div>
+  <div class="tab-pane active" id="pane-routine">
+    <div class="rt-subtabs">
+      <button class="rt-subtab active" data-sub="today">Today</button>
+      <button class="rt-subtab" data-sub="stats">Stats</button>
     </div>
 
     <div id="rt-today-view">
-      <div class="rt-metrics" id="rt-metrics" style="margin-bottom:1rem"></div>
-      <div id="rt-groups"></div>
-      <button class="add-day-block-btn" id="rt-add-group" style="margin-top:.9rem;display:none"><i class="ti ti-plus" style="font-size:13px;vertical-align:-2px;margin-right:5px"></i>Add group</button>
+      <div class="card">
+        <div class="rt-toolbar" style="margin-bottom:14px">
+          <button class="icon-btn" id="rt-prev" title="Previous day"><i class="ti ti-chevron-left" style="font-size:14px"></i></button>
+          <span class="rt-daylabel" id="rt-daylabel"></span>
+          <button class="icon-btn" id="rt-next" title="Next day"><i class="ti ti-chevron-right" style="font-size:14px"></i></button>
+          <button class="rt-small-btn" id="rt-today-btn">Today</button>
+          <span style="flex:1"></span>
+          <button class="rt-small-btn" id="rt-edit-toggle"><i class="ti ti-pencil" style="font-size:12px;vertical-align:-2px;margin-right:4px"></i>Edit routine</button>
+        </div>
+        <div class="rt-metrics" id="rt-metrics"></div>
+        <div id="rt-groups"></div>
+        <button class="rt-addblock" id="rt-add-group" style="display:none;margin-top:14px"><i class="ti ti-plus" style="font-size:12px;vertical-align:-2px;margin-right:4px"></i>Add group</button>
+      </div>
     </div>
 
     <div id="rt-stats-view" style="display:none">
-      <div class="rt-topbar" style="margin-bottom:1rem">
-        <button class="rt-pill" data-range="daily">Daily</button>
-        <button class="rt-pill on" data-range="weekly">Weekly</button>
-        <button class="rt-pill" data-range="monthly">Monthly</button>
-        <span class="hint" id="rt-range-hint" style="margin:0 0 0 auto"></span>
-      </div>
-      <div class="rt-metrics" id="rt-stat-metrics" style="margin-bottom:1.3rem"></div>
       <div class="card">
-        <div class="insights-hdr"><span class="eyebrow">Completion</span></div>
+        <div class="insights-hdr">
+          <div class="rt-seg" id="rt-gran">
+            <button data-g="daily">Daily</button>
+            <button data-g="weekly" class="active">Weekly</button>
+            <button data-g="monthly">Monthly</button>
+          </div>
+          <span class="rt-hint" id="rt-range-label"></span>
+        </div>
+        <div class="rt-metrics" id="rt-stat-metrics" style="margin-bottom:18px"></div>
         <div id="rt-matrix"></div>
-        <div class="rt-scale">
+        <div class="rt-legend-row">
           <span>0%</span>
           <div style="display:flex;gap:3px">
-            <div class="rt-swatch zero" style="background:var(--s0)"></div>
-            <div class="rt-swatch" style="opacity:.35"></div>
-            <div class="rt-swatch" style="opacity:.6"></div>
-            <div class="rt-swatch" style="opacity:.8"></div>
-            <div class="rt-swatch"></div>
+            <div class="rt-legend-swatch" style="background:var(--s0)"></div>
+            <div class="rt-legend-swatch" style="opacity:.3"></div>
+            <div class="rt-legend-swatch" style="opacity:.55"></div>
+            <div class="rt-legend-swatch" style="opacity:.8"></div>
+            <div class="rt-legend-swatch"></div>
           </div>
           <span>100%</span>
-          <span style="margin-left:10px">Dashed = not scheduled</span>
+          <span style="margin-left:8px">Click a name to open its chart</span>
         </div>
-      </div>
-      <div class="card" style="margin-top:.9rem">
-        <div class="insights-hdr"><span class="eyebrow">By weekday</span></div>
-        <div id="rt-weekday"></div>
       </div>
     </div>
   </div>
 
   <!-- ============ WORKOUT TAB ============ -->
-  <div id="pane-workout" style="display:none">
+  <div class="tab-pane" id="pane-workout">
     <div class="plan-bar" id="plan-bar" style="display:none">
       <div class="plan-bar-left">
         <i class="ti ti-target-arrow" style="font-size:14px;color:var(--tm)" aria-hidden="true"></i>
@@ -253,7 +265,7 @@ button:disabled:hover{background:var(--s1)}
       </div>
     </div>
 
-    <div class="card" style="margin-top:.9rem">
+    <div class="card">
       <div class="insights-hdr">
         <span class="eyebrow">Progress tracker</span>
         <select id="chart-select" style="height:26px;font-size:11px"></select>
@@ -270,7 +282,7 @@ button:disabled:hover{background:var(--s1)}
       </div>
     </div>
 
-    <div class="cards-grid" id="cards-grid" style="margin-top:.9rem"></div>
+    <div class="cards-grid" id="cards-grid"></div>
   </div>
 </div>
 
@@ -296,32 +308,39 @@ button:disabled:hover{background:var(--s1)}
 
 <!-- Block editor modal (routine) -->
 <div class="overlay" id="rt-block-overlay">
-  <div class="modal" style="max-width:460px">
+  <div class="modal">
     <h2 id="rt-block-title">Edit block</h2>
-    <div class="field"><label>Name</label><input type="text" id="rt-b-name" placeholder="Meditation + walk"></div>
+    <div class="field"><label>Name</label><input type="text" id="rt-b-name"></div>
     <div class="field-row">
-      <div class="field"><label>Group</label><select id="rt-b-group" style="width:100%;height:34px"></select></div>
-      <div class="field"><label>Type</label><select id="rt-b-type" style="width:100%;height:34px">
-        <option value="check">Check off</option>
-        <option value="time">Clock time</option>
+      <div class="field"><label>Group</label><select id="rt-b-group"></select></div>
+      <div class="field"><label>Type</label><select id="rt-b-type">
+        <option value="check">Check</option>
+        <option value="time">Time</option>
         <option value="duration">Duration</option>
         <option value="note">Note</option>
       </select></div>
     </div>
-    <div class="field" id="rt-b-target-wrap">
-      <label id="rt-b-target-label">Target</label>
-      <input type="time" id="rt-b-target-time" style="width:100%;height:34px">
-      <input type="number" id="rt-b-target-num" min="0" step="1" style="width:100%;height:34px" placeholder="20">
-      <div class="hint" id="rt-b-target-hint"></div>
+    <div class="field-row">
+      <div class="field" id="rt-b-target-wrap"><label id="rt-b-target-label">Target</label><input type="text" id="rt-b-target"></div>
+      <div class="field" id="rt-b-role-wrap"><label>Sleep role</label><select id="rt-b-role">
+        <option value="">None</option>
+        <option value="wake">Wake time</option>
+        <option value="bed">Bed time</option>
+      </select></div>
+      <div class="field" id="rt-b-link-wrap"><label>Source</label><select id="rt-b-link">
+        <option value="">Manual — check it off yourself</option>
+        <option value="workout">Linked — reflects today's workout log</option>
+      </select></div>
     </div>
     <div class="field">
       <label>Days</label>
-      <div class="rt-daypills" id="rt-b-days"></div>
+      <div class="rt-days" id="rt-b-days"></div>
+      <div class="hint">Unchecked days are not counted as missed.</div>
     </div>
-    <div class="field" id="rt-b-prompt-wrap"><label>Note prompt</label><input type="text" id="rt-b-prompt" placeholder="Where did you walk?"></div>
+    <div class="field"><label>Note prompt</label><input type="text" id="rt-b-note" placeholder="Optional placeholder text"></div>
     <div class="modal-actions">
-      <button id="rt-b-delete" style="display:none;color:#c0392b;margin-right:auto">Delete</button>
-      <button id="rt-b-pause" style="display:none">Pause</button>
+      <button id="rt-b-delete" style="color:#c0392b;margin-right:auto">Delete</button>
+      <button id="rt-b-pause">Pause</button>
       <button id="rt-b-cancel">Cancel</button>
       <button class="primary-btn" id="rt-b-save">Save</button>
     </div>
@@ -345,7 +364,7 @@ firebase.initializeApp(firebaseConfig);
 const fbAuth=firebase.auth();
 const fbDb=firebase.database();
 let cloudUser=null,cloudSaveTimer=null,cloudApplyingRemote=false,cloudReady=false;
-let rtSaveTimer=null,rtApplyingRemote=false,rtCloudReady=false;
+let rtCloudSaveTimer=null,rtCloudApplyingRemote=false,rtCloudReady=false;
 const mySessionId=Math.random().toString(36).slice(2)+Date.now().toString(36);
 
 function setSyncStatus(text,cls){
@@ -368,12 +387,12 @@ function cloudQueueSave(){
   },900);
 }
 
-function cloudQueueSaveRoutine(){
-  if(!cloudUser||rtApplyingRemote)return;
+function rtCloudQueueSave(){
+  if(!cloudUser||rtCloudApplyingRemote)return;
   setSyncStatus('Syncing…','syncing');
-  clearTimeout(rtSaveTimer);
-  rtSaveTimer=setTimeout(()=>{
-    const raw=localStorage.getItem(RT_STORAGE_KEY)||'{}';
+  clearTimeout(rtCloudSaveTimer);
+  rtCloudSaveTimer=setTimeout(()=>{
+    const raw=localStorage.getItem(RT_KEY)||'{}';
     const payload=JSON.parse(raw);
     payload._rev={sid:mySessionId,t:Date.now()};
     fbDb.ref('users/'+cloudUser.uid+'/routine').set(payload)
@@ -403,7 +422,7 @@ function cloudApplyRemote(data){
       localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
       document.getElementById('setup-overlay').classList.remove('open');
       renderAll();
-      renderRoutine();
+      if(typeof rtRenderAll==='function')rtRenderAll();
     }
   }finally{
     cloudApplyingRemote=false;
@@ -411,16 +430,14 @@ function cloudApplyRemote(data){
 }
 
 function rtCloudApplyRemote(data){
-  rtApplyingRemote=true;
+  rtCloudApplyingRemote=true;
   try{
-    if(data&&(data.blocks||data.groups)){
-      rtState=rtNormalize(data);
-      localStorage.setItem(RT_STORAGE_KEY,JSON.stringify(rtState));
-      document.getElementById('rt-block-overlay').classList.remove('open');
-      renderRoutine();
-    }
+    rtState=rtNormalize(data);
+    localStorage.setItem(RT_KEY,JSON.stringify(rtState));
+    document.getElementById('rt-block-overlay').classList.remove('open');
+    rtRenderAll();
   }finally{
-    rtApplyingRemote=false;
+    rtCloudApplyingRemote=false;
   }
 }
 
@@ -465,40 +482,47 @@ fbAuth.onAuthStateChanged(user=>{
       });
     });
 
-    const rref=fbDb.ref('users/'+user.uid+'/routine');
-    rref.once('value').then(snap=>{
+    const rtRef=fbDb.ref('users/'+user.uid+'/routine');
+    rtRef.once('value').then(snap=>{
       const remote=snap.val();
-      const localRaw=localStorage.getItem(RT_STORAGE_KEY);
+      const localRaw=localStorage.getItem(RT_KEY);
       const local=localRaw?JSON.parse(localRaw):null;
       const remoteTime=(remote&&remote.updatedAt)||0;
       const localTime=(local&&local.updatedAt)||0;
-      if(remote&&(remote.blocks||remote.groups)&&remoteTime>=localTime){
+      if(remote&&remote.blocks&&remoteTime>=localTime){
         rtCloudApplyRemote(remote);
       }else{
-        rtSaveLocal();
-        cloudQueueSaveRoutine();
+        rtCloudQueueSave();
       }
       rtCloudReady=true;
-      rref.on('value',snap2=>{
-        if(!rtCloudReady||rtApplyingRemote)return;
+      rtRef.on('value',snap2=>{
+        if(!rtCloudReady||rtCloudApplyingRemote)return;
         const remote2=snap2.val();
         if(remote2&&remote2._rev&&remote2._rev.sid===mySessionId)return;
-        if(remote2&&(remote2.blocks||remote2.groups))rtCloudApplyRemote(remote2);
+        if(remote2&&remote2.blocks)rtCloudApplyRemote(remote2);
       });
     });
+
   }else{
     cloudInitializedForUid=null;
-    cloudReady=false;rtCloudReady=false;
+    cloudReady=false;
+    rtCloudReady=false;
     document.getElementById('sync-btn').textContent='Sign in';
     setSyncStatus('Not signed in','');
   }
 });
 </script>
+
 <script>
+/* =====================================================================
+   WORKOUT  — unchanged logic from the original dashboard
+   ===================================================================== */
 const STORAGE_KEY = 'workoutDashboardData_v2';
 const BAND_OPTIONS = ['LB','DB'];
-function localDateStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-const todayStr = () => localDateStr(new Date());
+const todayStr = () => {
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+};
 const uid = () => Math.random().toString(36).slice(2,10);
 
 function loadData(){
@@ -535,7 +559,7 @@ function escapeHtml(s){
 const setupOverlay = document.getElementById('setup-overlay');
 const setupCardList = document.getElementById('setup-card-list');
 let setupState = { cards: [] };
-let editingPlanId = null; // null = creating a new plan
+let editingPlanId = null;
 
 function blankSetupCard(i){ return { id:null, name:`Day ${i+1}`, target:16, exercises:[ blankSetupExercise() ] }; }
 function blankSetupExercise(){ return { id:null, name:'', sets:3, reps:10, type:'weight' }; }
@@ -596,7 +620,7 @@ function openCreateModal(){
   document.getElementById('setup-name').value = 'Plan ' + (state.plans.length+1);
   document.getElementById('setup-start').value = todayStr();
   const end = new Date(); end.setMonth(end.getMonth()+2);
-  document.getElementById('setup-end').value = localDateStr(end);
+  document.getElementById('setup-end').value = end.toISOString().slice(0,10);
   setupState = { cards: [blankSetupCard(0), blankSetupCard(1)] };
   renderSetupCards();
   document.getElementById('setup-delete').style.display = 'none';
@@ -636,6 +660,7 @@ document.getElementById('setup-delete').addEventListener('click', ()=>{
   saveData();
   setupOverlay.classList.remove('open');
   renderAll();
+  if(typeof rtRenderAll==='function') rtRenderAll();
 });
 document.getElementById('setup-create').addEventListener('click', ()=>{
   const name = document.getElementById('setup-name').value.trim() || ('Plan ' + (state.plans.length+1));
@@ -676,6 +701,7 @@ document.getElementById('setup-create').addEventListener('click', ()=>{
   saveData();
   setupOverlay.classList.remove('open');
   renderAll();
+  if(typeof rtRenderAll==='function') rtRenderAll();
 });
 
 // ============ PLAN SELECTOR ============
@@ -775,6 +801,7 @@ function makeCardEl(plan, card){
       unlockedCards.delete(card.id);
       saveData();
       renderAll();
+      if(typeof rtRenderAll==='function') rtRenderAll();
       return;
     }
     const snapshot = {};
@@ -786,6 +813,7 @@ function makeCardEl(plan, card){
     unlockedCards.delete(card.id);
     saveData();
     renderAll();
+    if(typeof rtRenderAll==='function') rtRenderAll();
   });
   dateRow.appendChild(calIcon); dateRow.appendChild(dateInput); dateRow.appendChild(logBtn);
   el.appendChild(dateRow);
@@ -931,7 +959,9 @@ function renderChartPanel(plan){
   drawDayChart(card);
 }
 
-function toDateStr(d){ return localDateStr(d); }
+function toDateStr(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 
 function drawMonthCalendar(plan, monthDate){
   const box = document.getElementById('chart-box');
@@ -1066,7 +1096,7 @@ function drawDayChart(card){
 
 // ============ EXPORT (Ctrl/Cmd+E) ============
 function exportData(){
-  const payload = { workout: state, routine: rtState };
+  const payload = { workout: state, routine: (typeof rtState!=='undefined' ? rtState : null) };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1078,760 +1108,859 @@ document.addEventListener('keydown', e=>{
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='e'){ e.preventDefault(); exportData(); }
 });
 
-// ============ WORKOUT RENDER ============
+// ============ INIT ============
 function renderAll(){
   if(!state.plans.length){
     document.getElementById('plan-bar').style.display='none';
     cardsGrid.innerHTML='';
     renderInsights();
     if(activeTab==='workout') openCreateModal();
-    if(typeof renderRoutine==='function') renderRoutine();
     return;
   }
   if(!currentPlanId || !getCurrentPlan()) currentPlanId = mostRecentPlanId();
   renderPlanBar();
   renderCards();
   renderInsights();
-  if(typeof renderRoutine==='function') renderRoutine();
 }
 </script>
-<script>
-// ================= ROUTINE =================
-const RT_STORAGE_KEY = 'routineDashboardData_v1';
-const RT_ALL_DAYS = [0,1,2,3,4,5,6];
-const DOW_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const DOW_TINY  = ['S','M','T','W','T','F','S'];
 
-let activeTab = 'routine';
-let rtSubView = 'today';
+<script>
+/* =====================================================================
+   ROUTINE
+   ===================================================================== */
+const RT_KEY = 'routineDashboardData_v1';
+const RT_DOW = ['S','M','T','W','T','F','S'];
+const RT_DOW_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+let rtState = null;
+let rtDate = todayStr();
+let rtSub = 'today';
 let rtEditMode = false;
-let rtViewDate = todayStr();
-let rtRange = 'weekly';
+let rtGran = 'weekly';
+let rtOpenDetail = null;
 let rtEditingBlockId = null;
-let rtEditingBlockDraft = null;
+let rtDraftDays = '1111111';
 
 function rtSeed(){
+  // Blank by default — no habit names ship in the file. Groups are just
+  // generic time-of-day scaffolding; blocks are created by the user via
+  // "Add block" and stored only in their own Firebase/localStorage data.
+  const g = n => ({ id: uid(), name: n });
   return {
-    groups:[{id:'gm',name:'Morning'},{id:'gd',name:'Day'},{id:'ge',name:'Evening'}],
-    blocks:[
-      {id:'wake', name:'Wake up',              groupId:'gm', type:'time',     target:'06:30', days:RT_ALL_DAYS.slice(), role:'wake'},
-      {id:'meds', name:'Medication + protein', groupId:'gm', type:'check',                    days:RT_ALL_DAYS.slice()},
-      {id:'wkt',  name:'Workout',              groupId:'gm', type:'check',                    days:RT_ALL_DAYS.slice(), link:'workout'},
-      {id:'shwr', name:'Shower + facial',      groupId:'gm', type:'check',                    days:RT_ALL_DAYS.slice()},
-      {id:'jrnl', name:'Coffee + journaling',  groupId:'gm', type:'note',                     days:RT_ALL_DAYS.slice(), prompt:'A line about today…'},
-      {id:'book', name:'Book or podcast',      groupId:'gd', type:'note',                     days:RT_ALL_DAYS.slice(), prompt:'What did you read or listen to?'},
-      {id:'walk', name:'Meditation + walk',    groupId:'gd', type:'duration', target:20,      days:RT_ALL_DAYS.slice()},
-      {id:'med2', name:'Meditation',           groupId:'ge', type:'duration', target:10,      days:RT_ALL_DAYS.slice()},
-      {id:'bed',  name:'Bed time',             groupId:'ge', type:'time',     target:'23:00', days:RT_ALL_DAYS.slice(), role:'bed'}
-    ],
-    logs:{}
+    groups: [g('Morning'), g('Day'), g('Evening')],
+    blocks: [],
+    log: {}
   };
 }
 
-function rtNormalize(data){
-  if(!data || typeof data!=='object') return rtSeed();
-  if(!Array.isArray(data.groups) || !data.groups.length) data.groups=[{id:'gm',name:'Morning'}];
-  if(!Array.isArray(data.blocks)) data.blocks=[];
-  if(!data.logs || typeof data.logs!=='object') data.logs={};
-  const groupIds = new Set(data.groups.map(g=>g.id));
-  data.blocks.forEach(b=>{
-    if(!Array.isArray(b.days) || !b.days.length) b.days = RT_ALL_DAYS.slice();
-    if(!groupIds.has(b.groupId)) b.groupId = data.groups[0].id;
-    if(!b.type) b.type='check';
+function rtNormalize(d){
+  if(!d || typeof d!=='object') d = {};
+  if(!Array.isArray(d.groups)) d.groups = [];
+  if(!Array.isArray(d.blocks)) d.blocks = [];
+  if(!d.log || typeof d.log!=='object') d.log = {};
+  d.blocks.forEach(b=>{
+    if(typeof b.days!=='string' || b.days.length!==7) b.days = '1111111';
+    if(typeof b.paused!=='boolean') b.paused = false;
+    if(!b.type) b.type = 'check';
+    if(b.target===undefined) b.target = null;
+    if(b.role===undefined) b.role = null;
+    if(b.link===undefined) b.link = null;
+    if(typeof b.notePrompt!=='string') b.notePrompt = '';
+    if(typeof b.since!=='string'){
+      let first = null;
+      Object.keys(d.log).forEach(dt=>{ if(d.log[dt] && d.log[dt][b.id] && (!first || dt<first)) first = dt; });
+      b.since = first || todayStr();
+    }
   });
-  return data;
-}
-
-function rtLoad(){
-  try{ const raw=localStorage.getItem(RT_STORAGE_KEY); if(raw) return rtNormalize(JSON.parse(raw)); }
-  catch(e){ console.error('routine load failed', e); }
-  return rtSeed();
-}
-let rtState = rtLoad();
-
-function rtSaveLocal(){ localStorage.setItem(RT_STORAGE_KEY, JSON.stringify(rtState)); }
-function rtSave(){ rtState.updatedAt=Date.now(); rtSaveLocal(); cloudQueueSaveRoutine(); }
-
-// ---------- helpers ----------
-function rtShiftDate(dateStr, days){
-  const d=new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+days); return localDateStr(d);
-}
-function rtDow(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
-function rtActiveBlocks(includePaused){
-  return rtState.blocks.filter(b=>!b.deleted && (includePaused || !b.paused));
-}
-function rtScheduled(b, dateStr){ return (b.days||RT_ALL_DAYS).indexOf(rtDow(dateStr))!==-1; }
-function rtEntry(dateStr, id){ const day=rtState.logs[dateStr]; return (day && day[id]) || null; }
-function rtSetEntry(dateStr, id, patch){
-  if(!rtState.logs[dateStr]) rtState.logs[dateStr]={};
-  const cur = rtState.logs[dateStr][id] || {};
-  rtState.logs[dateStr][id] = Object.assign(cur, patch);
-  rtSave();
-}
-function rtIsSkipped(dateStr, id){ const e=rtEntry(dateStr,id); return !!(e && e.skipped); }
-function workoutLoggedOn(dateStr){
-  return state.plans.some(p=>p.cards.some(c=> c.logs && c.logs[dateStr]));
-}
-function workoutNameOn(dateStr){
-  for(const p of state.plans) for(const c of p.cards) if(c.logs && c.logs[dateStr]) return c.name;
-  return null;
-}
-function rtIsDone(b, dateStr){
-  if(b.link==='workout') return workoutLoggedOn(dateStr);
-  const e=rtEntry(dateStr,b.id);
-  if(!e || e.skipped) return false;
-  if(b.type==='time')     return !!e.time;
-  if(b.type==='duration') return (e.minutes||0)>0;
-  if(b.type==='note')     return !!e.done || !!(e.note && e.note.trim());
-  return !!e.done;
-}
-function rtDayStats(dateStr){
-  let done=0,total=0;
-  rtActiveBlocks(false).forEach(b=>{
-    if(!rtScheduled(b,dateStr)) return;
-    if(rtIsSkipped(dateStr,b.id)) return;
-    total++; if(rtIsDone(b,dateStr)) done++;
+  const groupIds = new Set(d.groups.map(g=>g.id));
+  d.blocks.forEach(b=>{ if(!groupIds.has(b.groupId) && d.groups.length) b.groupId = d.groups[0].id; });
+  Object.keys(d.log).forEach(k=>{
+    if(!d.log[k] || typeof d.log[k]!=='object') delete d.log[k];
   });
-  return {done,total};
-}
-function rtMinutesFromTime(t){ const p=(t||'').split(':'); return p.length===2 ? (+p[0])*60+(+p[1]) : null; }
-function rtFmtMinutes(m){
-  m=Math.round(m); const h=Math.floor(m/60), mm=m%60;
-  return h+':'+String(mm).padStart(2,'0');
-}
-function rtFmtDuration(m){
-  m=Math.round(m); const h=Math.floor(m/60), mm=m%60;
-  return h+'h '+String(mm).padStart(2,'0');
-}
-function rtSleepMinutes(dateStr){
-  const wakeB = rtState.blocks.find(b=>b.role==='wake');
-  const bedB  = rtState.blocks.find(b=>b.role==='bed');
-  if(!wakeB || !bedB) return null;
-  const wake = rtEntry(dateStr, wakeB.id);
-  const bed  = rtEntry(rtShiftDate(dateStr,-1), bedB.id);
-  if(!wake || !wake.time || !bed || !bed.time) return null;
-  let bedMin = rtMinutesFromTime(bed.time);
-  const wakeMin = rtMinutesFromTime(wake.time);
-  if(bedMin===null || wakeMin===null) return null;
-  if(bedMin < 720) bedMin += 1440;
-  const sleep = (wakeMin + 1440) - bedMin;
-  return (sleep>0 && sleep<=16*60) ? sleep : null;
-}
-
-// ---------- tabs ----------
-function switchTab(name){
-  activeTab = name;
-  document.getElementById('pane-routine').style.display = name==='routine' ? '' : 'none';
-  document.getElementById('pane-workout').style.display = name==='workout' ? '' : 'none';
-  document.getElementById('tab-btn-routine').classList.toggle('active', name==='routine');
-  document.getElementById('tab-btn-workout').classList.toggle('active', name==='workout');
-  if(name==='workout'){
-    if(!state.plans.length) openCreateModal(); else renderAll();
-  } else {
-    renderRoutine();
-  }
-}
-document.getElementById('tab-btn-routine').addEventListener('click', ()=>switchTab('routine'));
-document.getElementById('tab-btn-workout').addEventListener('click', ()=>switchTab('workout'));
-
-document.getElementById('rt-sub-today').addEventListener('click', ()=>{ rtSubView='today'; renderRoutine(); });
-document.getElementById('rt-sub-stats').addEventListener('click', ()=>{ rtSubView='stats'; rtEditMode=false; renderRoutine(); });
-document.getElementById('rt-edit-toggle').addEventListener('click', ()=>{ rtEditMode=!rtEditMode; rtSubView='today'; renderRoutine(); });
-document.getElementById('rt-prev').addEventListener('click', ()=>{ rtViewDate=rtShiftDate(rtViewDate,-1); renderRoutine(); });
-document.getElementById('rt-next').addEventListener('click', ()=>{ rtViewDate=rtShiftDate(rtViewDate,1); renderRoutine(); });
-document.getElementById('rt-today-btn').addEventListener('click', ()=>{ rtViewDate=todayStr(); renderRoutine(); });
-document.querySelectorAll('[data-range]').forEach(btn=>{
-  btn.addEventListener('click', ()=>{ rtRange=btn.dataset.range; renderRoutine(); });
-});
-
-// ---------- reorder ----------
-let rtDrag = null;
-function rtMoveBefore(srcId, dstId){
-  const blocks = rtState.blocks;
-  const si = blocks.findIndex(b=>b.id===srcId);
-  const di = blocks.findIndex(b=>b.id===dstId);
-  if(si<0 || di<0 || si===di) return;
-  const [src] = blocks.splice(si,1);
-  const newDi = blocks.findIndex(b=>b.id===dstId);
-  src.groupId = blocks[newDi].groupId;
-  blocks.splice(newDi, 0, src);
-  rtSave(); renderRoutine();
-}
-function rtMoveToGroupEnd(srcId, groupId){
-  const blocks = rtState.blocks;
-  const si = blocks.findIndex(b=>b.id===srcId);
-  if(si<0) return;
-  const [src] = blocks.splice(si,1);
-  src.groupId = groupId;
-  let lastIdx = -1;
-  blocks.forEach((b,i)=>{ if(b.groupId===groupId) lastIdx=i; });
-  blocks.splice(lastIdx+1, 0, src);
-  rtSave(); renderRoutine();
-}
-function rtAttachDrag(handle, row, block){
-  handle.addEventListener('pointerdown', e=>{
-    e.preventDefault();
-    try{ handle.setPointerCapture(e.pointerId); }catch(_){}
-    rtDrag = {id:block.id, row};
-    row.classList.add('dragging');
-  });
-  handle.addEventListener('pointermove', e=>{
-    if(!rtDrag) return;
-    document.querySelectorAll('.rt-row.drop-target').forEach(r=>r.classList.remove('drop-target'));
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    const target = el && el.closest ? el.closest('.rt-row') : null;
-    if(target && target!==rtDrag.row) target.classList.add('drop-target');
-  });
-  const finish = e=>{
-    if(!rtDrag) return;
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    const rowEl  = el && el.closest ? el.closest('.rt-row') : null;
-    const listEl = el && el.closest ? el.closest('[data-group-list]') : null;
-    row.classList.remove('dragging');
-    document.querySelectorAll('.rt-row.drop-target').forEach(r=>r.classList.remove('drop-target'));
-    const id = rtDrag.id; rtDrag = null;
-    if(rowEl && rowEl.dataset.block && rowEl.dataset.block!==id) rtMoveBefore(id, rowEl.dataset.block);
-    else if(listEl) rtMoveToGroupEnd(id, listEl.dataset.groupList);
-  };
-  handle.addEventListener('pointerup', finish);
-  handle.addEventListener('pointercancel', ()=>{
-    if(!rtDrag) return;
-    row.classList.remove('dragging');
-    document.querySelectorAll('.rt-row.drop-target').forEach(r=>r.classList.remove('drop-target'));
-    rtDrag=null;
-  });
-}
-
-// ---------- today view ----------
-function rtMetricEl(k,v){
-  const d=document.createElement('div'); d.className='rt-metric';
-  d.innerHTML = `<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div>`;
   return d;
 }
 
-function rtCurrentStreak(){
-  let d = todayStr(), streak = 0;
-  for(let i=0;i<400;i++){
-    const s = rtDayStats(d);
-    if(s.total>0 && s.done/s.total >= 0.8) streak++;
-    else if(i>0 || s.done>0) break;
-    d = rtShiftDate(d,-1);
+function rtLoad(){
+  try{
+    const raw = localStorage.getItem(RT_KEY);
+    if(raw) return rtNormalize(JSON.parse(raw));
+  }catch(e){ console.error('Failed to load routine', e); }
+  return rtSeed();
+}
+function rtSave(){
+  rtState.updatedAt = Date.now();
+  localStorage.setItem(RT_KEY, JSON.stringify(rtState));
+  rtCloudQueueSave();
+}
+
+rtState = rtLoad();
+
+/* ---------- date helpers ---------- */
+function rtShift(dateStr, n){
+  const d = new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()+n);
+  return toDateStr(d);
+}
+function rtDow(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
+function rtToMin(hhmm){
+  if(!hhmm || hhmm.indexOf(':')<0) return null;
+  const [h,m] = hhmm.split(':').map(Number);
+  if(isNaN(h)||isNaN(m)) return null;
+  return h*60+m;
+}
+function rtFromMin(mins){
+  const m = Math.round(mins);
+  const h = Math.floor(m/60)%24, mm = m%60;
+  return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+}
+function rtFmtDur(mins){
+  const m = Math.round(mins);
+  return Math.floor(m/60)+'h '+String(m%60).padStart(2,'0');
+}
+
+/* ---------- entries ---------- */
+function rtEntry(date, blockId){
+  const day = rtState.log[date];
+  return (day && day[blockId]) || null;
+}
+function rtPatch(date, blockId, patch){
+  const blk = rtState.blocks.find(b=>b.id===blockId);
+  if(blk && blk.since && date < blk.since) blk.since = date;
+  if(!rtState.log[date]) rtState.log[date] = {};
+  const cur = rtState.log[date][blockId] || {};
+  rtState.log[date][blockId] = Object.assign({}, cur, patch);
+}
+function rtWorkoutOn(date){
+  for(const plan of state.plans){
+    for(const card of plan.cards){
+      if(card.logs && card.logs[date]) return card.name;
+    }
   }
-  return streak;
+  return null;
+}
+function rtScheduled(block, date){
+  if(block.paused) return false;
+  return block.days.charAt(rtDow(date)) === '1';
+}
+function rtStatus(block, date){
+  if(block.since && date < block.since) return 'na';
+  if(!rtScheduled(block, date)) return 'na';
+  if(block.link === 'workout') return rtWorkoutOn(date) ? 'done' : (date > todayStr() ? 'na' : 'missed');
+  const e = rtEntry(date, block.id);
+  if(e && e.skipped) return 'skipped';
+  if(e && e.done) return 'done';
+  if(date > todayStr()) return 'na';
+  return 'missed';
+}
+function rtActiveBlocks(){ return rtState.blocks.filter(b=>!b.paused); }
+
+function rtDayStats(date){
+  let done=0, total=0;
+  rtState.blocks.forEach(b=>{
+    const s = rtStatus(b, date);
+    if(s==='done'){ done++; total++; }
+    else if(s==='missed'){ total++; }
+  });
+  return { done, total };
+}
+function rtDayComplete(date){
+  const s = rtDayStats(date);
+  return s.total>0 && s.done===s.total;
+}
+function rtStreak(){
+  let cur = todayStr();
+  if(!rtDayComplete(cur)) cur = rtShift(cur,-1);
+  let n = 0, guard = 0;
+  while(rtDayComplete(cur) && guard<400){ n++; cur = rtShift(cur,-1); guard++; }
+  return n;
+}
+function rtSleepFor(date){
+  const wakeB = rtState.blocks.find(b=>b.role==='wake');
+  const bedB  = rtState.blocks.find(b=>b.role==='bed');
+  if(!wakeB || !bedB) return null;
+  const w = rtEntry(date, wakeB.id);
+  const bd = rtEntry(rtShift(date,-1), bedB.id);
+  if(!w || !w.time || !bd || !bd.time) return null;
+  const wm = rtToMin(w.time), bm = rtToMin(bd.time);
+  if(wm===null || bm===null) return null;
+  let dur = bm >= 720 ? (1440 - bm + wm) : (wm - bm);
+  if(dur <= 0 || dur > 1080) return null;
+  return dur;
 }
 
-function renderRtMetrics(){
-  const wrap=document.getElementById('rt-metrics');
-  wrap.innerHTML='';
-  const s = rtDayStats(rtViewDate);
-  wrap.appendChild(rtMetricEl(rtViewDate===todayStr()?'Today':'That day', s.done+' / '+s.total));
-  const sleep = rtSleepMinutes(rtViewDate);
-  wrap.appendChild(rtMetricEl('Slept', sleep!==null ? rtFmtDuration(sleep) : '—'));
-  let wDone=0,wTotal=0;
-  for(let i=0;i<7;i++){ const st=rtDayStats(rtShiftDate(rtViewDate,-i)); wDone+=st.done; wTotal+=st.total; }
-  wrap.appendChild(rtMetricEl('Last 7 days', wTotal? Math.round(wDone/wTotal*100)+'%' : '—'));
-  wrap.appendChild(rtMetricEl('Streak', rtCurrentStreak()+' d'));
+/* ---------- tabs ---------- */
+let activeTab = 'routine';
+function switchTab(name){
+  activeTab = name;
+  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('active', b.dataset.tab===name));
+  document.getElementById('pane-routine').classList.toggle('active', name==='routine');
+  document.getElementById('pane-workout').classList.toggle('active', name==='workout');
+  if(name==='workout' && !state.plans.length) openCreateModal();
+}
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> switchTab(btn.dataset.tab));
+});
+document.querySelectorAll('.rt-subtab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    rtSub = btn.dataset.sub;
+    document.querySelectorAll('.rt-subtab').forEach(b=> b.classList.toggle('active', b.dataset.sub===rtSub));
+    document.getElementById('rt-today-view').style.display = rtSub==='today' ? '' : 'none';
+    document.getElementById('rt-stats-view').style.display = rtSub==='stats' ? '' : 'none';
+    rtRenderAll();
+  });
+});
+
+/* ---------- day nav ---------- */
+document.getElementById('rt-prev').addEventListener('click', ()=>{ rtDate = rtShift(rtDate,-1); rtRenderToday(); });
+document.getElementById('rt-next').addEventListener('click', ()=>{ rtDate = rtShift(rtDate,1); rtRenderToday(); });
+document.getElementById('rt-today-btn').addEventListener('click', ()=>{ rtDate = todayStr(); rtRenderToday(); });
+document.getElementById('rt-edit-toggle').addEventListener('click', ()=>{
+  rtEditMode = !rtEditMode;
+  rtRenderToday();
+});
+document.getElementById('rt-add-group').addEventListener('click', ()=>{
+  rtState.groups.push({ id: uid(), name: 'New group' });
+  rtSave(); rtRenderToday();
+});
+
+/* ---------- context menu ---------- */
+function rtCloseMenu(){
+  const m = document.querySelector('.rt-menu');
+  if(m) m.remove();
+}
+document.addEventListener('click', e=>{
+  if(!e.target.closest || !e.target.closest('.rt-menu')) rtCloseMenu();
+}, true);
+
+function rtOpenMenu(anchor, items){
+  rtCloseMenu();
+  const m = document.createElement('div'); m.className='rt-menu';
+  items.forEach(it=>{
+    const b = document.createElement('button');
+    b.textContent = it.label;
+    if(it.danger) b.className='danger';
+    b.addEventListener('click', ev=>{ ev.stopPropagation(); rtCloseMenu(); it.run(); });
+    m.appendChild(b);
+  });
+  document.body.appendChild(m);
+  const r = anchor.getBoundingClientRect();
+  m.style.top = (window.scrollY + r.bottom + 4) + 'px';
+  m.style.left = Math.max(8, window.scrollX + r.right - m.offsetWidth) + 'px';
 }
 
-function rtStepper(value, step, onChange){
-  const wrap=document.createElement('div'); wrap.className='stepper';
-  const minus=document.createElement('button'); minus.type='button'; minus.textContent='−';
-  const box=document.createElement('input'); box.type='text'; box.readOnly=true; box.value=value;
-  const plus=document.createElement('button'); plus.type='button'; plus.textContent='+';
-  let v=value;
-  minus.addEventListener('click', ()=>{ v=Math.max(0, v-step); box.value=v; onChange(v); });
-  plus.addEventListener('click',  ()=>{ v=v+step; box.value=v; onChange(v); });
-  wrap.appendChild(minus); wrap.appendChild(box); wrap.appendChild(plus);
-  return wrap;
+/* ---------- today view ---------- */
+function rtRenderToday(){
+  const label = document.getElementById('rt-daylabel');
+  const d = new Date(rtDate+'T00:00:00');
+  const isToday = rtDate === todayStr();
+  label.textContent = isToday ? 'Today · ' + d.toLocaleDateString('en-US',{month:'short',day:'numeric'})
+                              : d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+
+  const editBtn = document.getElementById('rt-edit-toggle');
+  editBtn.classList.toggle('on', rtEditMode);
+  document.getElementById('rt-add-group').style.display = rtEditMode ? '' : 'none';
+  document.getElementById('rt-next').disabled = rtDate >= todayStr();
+
+  // metrics
+  const st = rtDayStats(rtDate);
+  const sleep = rtSleepFor(rtDate);
+  const wakeB = rtState.blocks.find(b=>b.role==='wake');
+  const wakeE = wakeB ? rtEntry(rtDate, wakeB.id) : null;
+  const mEl = document.getElementById('rt-metrics');
+  mEl.innerHTML = [
+    ['Done', st.done + ' / ' + st.total],
+    ['Slept', sleep!==null ? rtFmtDur(sleep) : '—'],
+    ['Woke', (wakeE && wakeE.time) ? wakeE.time : '—'],
+    ['Streak', rtStreak() + (rtStreak()===1?' day':' days')]
+  ].map(([l,v])=>`<div class="rt-metric"><div class="l">${l}</div><div class="v">${escapeHtml(String(v))}</div></div>`).join('');
+
+  // first run: no blocks anywhere yet — invite setup instead of showing empty groups
+  if(!rtState.blocks.length && !rtEditMode){
+    rtEditMode = true;
+    editBtn.classList.add('on');
+    document.getElementById('rt-add-group').style.display = '';
+  }
+
+  // groups
+  const wrap = document.getElementById('rt-groups');
+  wrap.innerHTML = '';
+  if(!rtState.blocks.length){
+    const intro = document.createElement('div'); intro.className='empty-hint'; intro.style.marginBottom='10px';
+    intro.textContent = 'This routine is empty — use "Add block" below each group to build your own.';
+    wrap.appendChild(intro);
+  }
+  rtState.groups.forEach(group=>{
+    const hdr = document.createElement('div'); hdr.className='rt-group-hdr';
+    const nameInp = document.createElement('input');
+    nameInp.className='rt-group-name'; nameInp.type='text'; nameInp.value=group.name;
+    nameInp.readOnly = !rtEditMode;
+    nameInp.addEventListener('change', ()=>{ group.name = nameInp.value.trim()||'Group'; rtSave(); });
+    hdr.appendChild(nameInp);
+    if(rtEditMode){
+      const del = document.createElement('button'); del.className='icon-btn'; del.title='Delete group';
+      del.innerHTML='<i class="ti ti-trash" style="font-size:12px"></i>';
+      del.addEventListener('click', ()=>{
+        if(rtState.blocks.some(b=>b.groupId===group.id)){ alert('Move or delete this group\u2019s blocks first.'); return; }
+        rtState.groups = rtState.groups.filter(g=>g.id!==group.id);
+        rtSave(); rtRenderToday();
+      });
+      hdr.appendChild(del);
+    }
+    wrap.appendChild(hdr);
+
+    const blocks = rtState.blocks.filter(b=>b.groupId===group.id);
+    const rows = document.createElement('div');
+    rows.className = 'rt-rows' + (blocks.length ? '' : ' empty');
+    rows.dataset.group = group.id;
+    if(!blocks.length) rows.textContent = 'No blocks in this group yet.';
+    blocks.forEach(block=> rows.appendChild(rtRowEl(block)));
+    wrap.appendChild(rows);
+    rtAttachDrop(rows);
+
+    if(rtEditMode){
+      const add = document.createElement('button'); add.className='rt-addblock';
+      add.innerHTML='<i class="ti ti-plus" style="font-size:12px;vertical-align:-2px;margin-right:4px"></i>Add block';
+      add.addEventListener('click', ()=> rtOpenBlockEditor(null, group.id));
+      wrap.appendChild(add);
+    }
+  });
 }
 
-function rtMakeRow(block){
-  const date = rtViewDate;
+function rtRowEl(block){
   const row = document.createElement('div');
   row.className = 'rt-row';
   row.dataset.block = block.id;
-  const skipped = rtIsSkipped(date, block.id);
-  const done = rtIsDone(block, date);
-  const scheduled = rtScheduled(block, date);
-  if(skipped) row.classList.add('skipped');
+  const status = rtStatus(block, rtDate);
+  const scheduled = rtScheduled(block, rtDate);
+  if(!scheduled) row.classList.add('na');
 
   if(rtEditMode){
-    const handle=document.createElement('i'); handle.className='ti ti-grip-vertical rt-handle'; handle.title='Drag to reorder';
-    row.appendChild(handle);
-    rtAttachDrag(handle, row, block);
-  } else {
-    const tick=document.createElement('button');
-    tick.className='rt-tick'+(done?' done':'');
-    tick.innerHTML=`<i class="ti ti-${done?'circle-check':'circle'}"></i>`;
-    if(block.link==='workout'){
-      tick.disabled=true; tick.title='Set by the workout tab';
-    } else if(block.type==='time' || block.type==='duration'){
-      tick.disabled=true; tick.title='Fill in the value to complete';
-    } else {
-      tick.addEventListener('click', ()=>{ rtSetEntry(date, block.id, {done:!done, skipped:false}); renderRoutine(); });
-    }
-    row.appendChild(tick);
+    const h = document.createElement('span'); h.className='rt-handle';
+    h.innerHTML='<i class="ti ti-grip-vertical"></i>';
+    rtAttachDrag(h, row);
+    row.appendChild(h);
   }
 
-  const main=document.createElement('div'); main.className='rt-main';
-  const name=document.createElement('div'); name.className='rt-name'; name.textContent=block.name; name.title=block.name;
-  main.appendChild(name);
-
-  const subBits=[];
-  if(rtEditMode){
-    subBits.push(({check:'Check off',time:'Clock time',duration:'Duration',note:'Note'})[block.type]||block.type);
-    if(block.days && block.days.length<7) subBits.push(block.days.slice().sort().map(d=>DOW_SHORT[d]).join(' '));
-    if(block.paused) subBits.push('Paused');
-  } else {
-    if(block.type==='time' && block.target) subBits.push('target '+block.target);
-    if(block.type==='duration' && block.target) subBits.push('target '+block.target+' min');
-    if(!scheduled) subBits.push('not scheduled today');
-    if(skipped) subBits.push('skipped');
+  // check circle
+  const chk = document.createElement('button');
+  chk.className = 'rt-check' + (status==='done'?' done':'') + (status==='skipped'?' skipped':'') + (block.link?' linked':'');
+  chk.innerHTML = status==='done' ? '<i class="ti ti-check"></i>' : (status==='skipped' ? '<i class="ti ti-minus"></i>' : '');
+  chk.title = block.link ? 'Set automatically from the workout tab' : 'Toggle done';
+  if(block.link){
+    chk.addEventListener('click', ()=> switchTab('workout'));
+  }else{
+    chk.addEventListener('click', ()=>{
+      const e = rtEntry(rtDate, block.id);
+      const nowDone = !(e && e.done);
+      rtPatch(rtDate, block.id, { done: nowDone, skipped:false });
+      rtSave(); rtRenderToday();
+    });
   }
-  if(subBits.length){
-    const sub=document.createElement('div'); sub.className='rt-sub'; sub.textContent=subBits.join(' · ');
-    main.appendChild(sub);
+  row.appendChild(chk);
+
+  // name
+  const name = document.createElement('span'); name.className='rt-name';
+  name.textContent = block.name; name.title = block.name;
+  if(block.link==='workout'){
+    const w = rtWorkoutOn(rtDate);
+    if(w){ const s=document.createElement('span'); s.className='sub'; s.textContent='— '+w+' logged'; name.appendChild(s); }
   }
+  if(block.paused){ const s=document.createElement('span'); s.className='sub'; s.textContent='— paused'; name.appendChild(s); }
+  else if(!scheduled){ const s=document.createElement('span'); s.className='sub'; s.textContent='— not scheduled'; name.appendChild(s); }
+  row.appendChild(name);
 
-  if(!rtEditMode && block.type==='note' && scheduled && !skipped){
-    const e=rtEntry(date,block.id);
-    const inp=document.createElement('input'); inp.type='text'; inp.className='rt-note';
-    inp.placeholder = block.prompt || 'Add a note…';
-    inp.value = (e && e.note) || '';
-    inp.addEventListener('change', ()=>{ rtSetEntry(date, block.id, {note:inp.value}); renderRtMetrics(); });
-    main.appendChild(inp);
-  }
-  row.appendChild(main);
-
-  const ctrl=document.createElement('div'); ctrl.className='rt-ctrl';
-
-  if(rtEditMode){
-    const pencil=document.createElement('button'); pencil.className='rt-mini'; pencil.title='Edit block';
-    pencil.innerHTML='<i class="ti ti-pencil" style="font-size:13px"></i>';
-    pencil.addEventListener('click', ()=>rtOpenBlockEditor(block.id, null));
-    ctrl.appendChild(pencil);
-  } else if(!scheduled){
-    const b=document.createElement('span'); b.className='rt-badge grey'; b.textContent='Off day'; ctrl.appendChild(b);
-  } else if(skipped){
-    const undo=document.createElement('button'); undo.className='rt-mini'; undo.title='Un-skip';
-    undo.innerHTML='<i class="ti ti-arrow-back-up" style="font-size:13px"></i>';
-    undo.addEventListener('click', ()=>{ rtSetEntry(date, block.id, {skipped:false}); renderRoutine(); });
-    ctrl.appendChild(undo);
-  } else {
-    if(block.link==='workout'){
-      const nm=workoutNameOn(date);
-      const b=document.createElement('span'); b.className='rt-badge'+(nm?'':' grey'); b.textContent=nm?nm:'Not logged';
-      ctrl.appendChild(b);
-      const go=document.createElement('button'); go.className='rt-mini'; go.title='Open workout tab';
-      go.innerHTML='<i class="ti ti-arrow-right" style="font-size:13px"></i>';
-      go.addEventListener('click', ()=>switchTab('workout'));
-      ctrl.appendChild(go);
-    } else if(block.type==='time'){
-      const e=rtEntry(date,block.id);
-      const inp=document.createElement('input'); inp.type='time'; inp.value=(e && e.time)||'';
-      inp.addEventListener('change', ()=>{ rtSetEntry(date, block.id, {time:inp.value, skipped:false}); renderRoutine(); });
-      ctrl.appendChild(inp);
-      const nowBtn=document.createElement('button'); nowBtn.className='rt-mini'; nowBtn.title='Stamp current time';
-      nowBtn.innerHTML='<i class="ti ti-clock" style="font-size:13px"></i>';
-      nowBtn.addEventListener('click', ()=>{
-        const n=new Date();
-        rtSetEntry(date, block.id, {time:String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'), skipped:false});
-        renderRoutine();
+  // type control
+  if(scheduled && !block.link){
+    if(block.type==='time'){
+      if(block.target){
+        const t = document.createElement('span'); t.className='rt-hint';
+        t.textContent = 'target ' + block.target;
+        row.appendChild(t);
+      }
+      const inp = document.createElement('input'); inp.type='time'; inp.className='rt-time';
+      const e = rtEntry(rtDate, block.id);
+      inp.value = (e && e.time) || '';
+      inp.addEventListener('change', ()=>{
+        rtPatch(rtDate, block.id, { time: inp.value, done: !!inp.value, skipped:false });
+        rtSave(); rtRenderToday();
       });
-      ctrl.appendChild(nowBtn);
+      row.appendChild(inp);
     } else if(block.type==='duration'){
-      const e=rtEntry(date,block.id);
-      const cur=(e && e.minutes)||0;
-      ctrl.appendChild(rtStepper(cur, 5, v=>{ rtSetEntry(date, block.id, {minutes:v, skipped:false}); renderRtMetrics(); }));
-      const unit=document.createElement('span'); unit.className='rt-sub'; unit.style.margin='0'; unit.textContent='min';
-      ctrl.appendChild(unit);
+      const e = rtEntry(rtDate, block.id);
+      let val = (e && typeof e.minutes==='number') ? e.minutes : 0;
+      const st = document.createElement('div'); st.className='stepper';
+      const minus=document.createElement('button'); minus.textContent='−';
+      const box=document.createElement('input'); box.type='text'; box.readOnly=true; box.value=val+'m'; box.style.width='44px';
+      const plus=document.createElement('button'); plus.textContent='+';
+      const commit = ()=>{
+        box.value = val+'m';
+        rtPatch(rtDate, block.id, { minutes: val, done: val>0, skipped:false });
+        rtSave();
+        rtRenderMetricsOnly();
+      };
+      minus.addEventListener('click', ()=>{ val=Math.max(0,val-5); commit(); });
+      plus.addEventListener('click', ()=>{ val=Math.min(600,val+5); commit(); });
+      st.appendChild(minus); st.appendChild(box); st.appendChild(plus);
+      if(block.target){
+        const t=document.createElement('span'); t.className='rt-hint'; t.textContent='target '+block.target+'m';
+        row.appendChild(t);
+      }
+      row.appendChild(st);
+    } else if(block.type==='note'){
+      const e = rtEntry(rtDate, block.id);
+      const inp = document.createElement('input'); inp.type='text'; inp.className='rt-note';
+      inp.placeholder = block.notePrompt || 'Add a note…';
+      inp.value = (e && e.note) || '';
+      inp.addEventListener('change', ()=>{
+        const v = inp.value.trim();
+        rtPatch(rtDate, block.id, { note: v, done: v!=='' ? true : false, skipped:false });
+        rtSave(); rtRenderToday();
+      });
+      row.appendChild(inp);
+    } else if(status==='done'){
+      const p=document.createElement('span'); p.className='rt-pill'; p.textContent='Done';
+      row.appendChild(p);
+    } else if(status==='skipped'){
+      const p=document.createElement('span'); p.className='rt-pill grey'; p.textContent='Skipped';
+      row.appendChild(p);
     }
-    const skip=document.createElement('button'); skip.className='rt-mini'; skip.title='Skip today';
-    skip.innerHTML='<i class="ti ti-ban" style="font-size:13px"></i>';
-    skip.addEventListener('click', ()=>{ rtSetEntry(date, block.id, {skipped:true}); renderRoutine(); });
-    ctrl.appendChild(skip);
   }
-  row.appendChild(ctrl);
+
+  // menu
+  const dots = document.createElement('button'); dots.className='icon-btn';
+  dots.innerHTML='<i class="ti ti-dots" style="font-size:14px"></i>';
+  dots.addEventListener('click', ev=>{
+    ev.stopPropagation();
+    const items = [];
+    if(!block.link){
+      const e = rtEntry(rtDate, block.id);
+      items.push({
+        label: (e && e.skipped) ? 'Un-skip today' : 'Skip today',
+        run: ()=>{
+          const cur = rtEntry(rtDate, block.id);
+          const skipping = !(cur && cur.skipped);
+          rtPatch(rtDate, block.id, { skipped: skipping, done:false });
+          rtSave(); rtRenderToday();
+        }
+      });
+    }
+    items.push({ label:'Edit block', run: ()=> rtOpenBlockEditor(block.id, block.groupId) });
+    rtOpenMenu(dots, items);
+  });
+  row.appendChild(dots);
+
   return row;
 }
 
-function renderRtGroups(){
-  const host=document.getElementById('rt-groups');
-  host.innerHTML='';
-  rtState.groups.forEach(group=>{
-    const sec=document.createElement('div'); sec.className='rt-group'; sec.style.marginBottom='1rem';
-    const hdr=document.createElement('div'); hdr.className='rt-group-hdr';
-    if(rtEditMode){
-      const inp=document.createElement('input'); inp.type='text'; inp.className='rt-group-name'; inp.value=group.name;
-      inp.addEventListener('change', ()=>{ group.name=inp.value.trim()||'Group'; rtSave(); renderRoutine(); });
-      hdr.appendChild(inp);
-      const del=document.createElement('button'); del.className='rt-mini'; del.title='Delete group';
-      del.innerHTML='<i class="ti ti-trash" style="font-size:12px"></i>';
-      del.addEventListener('click', ()=>{
-        const count=rtState.blocks.filter(b=>b.groupId===group.id && !b.deleted).length;
-        if(count){ alert('Move or delete this group\u2019s blocks first.'); return; }
-        if(rtState.groups.length<2){ alert('Keep at least one group.'); return; }
-        rtState.groups=rtState.groups.filter(g=>g.id!==group.id); rtSave(); renderRoutine();
-      });
-      hdr.appendChild(del);
-    } else {
-      const lbl=document.createElement('span'); lbl.className='rt-group-name'; lbl.textContent=group.name;
-      hdr.appendChild(lbl);
-    }
-    sec.appendChild(hdr);
-
-    const list=document.createElement('div'); list.className='rt-list';
-    list.dataset.groupList = group.id;
-    const blocks = rtActiveBlocks(rtEditMode).filter(b=>b.groupId===group.id);
-    if(!blocks.length){
-      const empty=document.createElement('div'); empty.className='rt-row';
-      empty.innerHTML='<span class="rt-sub" style="margin:0">Nothing here yet.</span>';
-      list.appendChild(empty);
-    } else {
-      blocks.forEach(b=> list.appendChild(rtMakeRow(b)));
-    }
-    if(rtEditMode){
-      const add=document.createElement('button'); add.className='rt-add-row';
-      add.innerHTML='<i class="ti ti-plus" style="font-size:12px;vertical-align:-2px;margin-right:5px"></i>Add block';
-      add.addEventListener('click', ()=>rtOpenBlockEditor(null, group.id));
-      list.appendChild(add);
-    }
-    sec.appendChild(list);
-    host.appendChild(sec);
-  });
+function rtRenderMetricsOnly(){
+  const st = rtDayStats(rtDate);
+  const sleep = rtSleepFor(rtDate);
+  const wakeB = rtState.blocks.find(b=>b.role==='wake');
+  const wakeE = wakeB ? rtEntry(rtDate, wakeB.id) : null;
+  const mEl = document.getElementById('rt-metrics');
+  mEl.innerHTML = [
+    ['Done', st.done + ' / ' + st.total],
+    ['Slept', sleep!==null ? rtFmtDur(sleep) : '—'],
+    ['Woke', (wakeE && wakeE.time) ? wakeE.time : '—'],
+    ['Streak', rtStreak() + (rtStreak()===1?' day':' days')]
+  ].map(([l,v])=>`<div class="rt-metric"><div class="l">${l}</div><div class="v">${escapeHtml(String(v))}</div></div>`).join('');
 }
 
-document.getElementById('rt-add-group').addEventListener('click', ()=>{
-  const name=prompt('Group name');
-  if(!name) return;
-  rtState.groups.push({id:uid(), name:name.trim()});
-  rtSave(); renderRoutine();
-});
+/* ---------- drag reorder ---------- */
+let rtDragRow = null;
+function rtAttachDrag(handle, row){
+  handle.addEventListener('pointerdown', e=>{
+    e.preventDefault();
+    rtDragRow = row;
+    row.classList.add('dragging');
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove', e=>{
+    if(!rtDragRow) return;
+    const under = document.elementFromPoint(e.clientX, e.clientY);
+    if(!under) return;
+    const target = under.closest ? under.closest('.rt-row') : null;
+    const container = under.closest ? under.closest('.rt-rows') : null;
+    if(target && target!==rtDragRow && target.parentNode){
+      const r = target.getBoundingClientRect();
+      const before = e.clientY < r.top + r.height/2;
+      target.parentNode.insertBefore(rtDragRow, before ? target : target.nextSibling);
+    } else if(container && !container.contains(rtDragRow) && !container.querySelector('.rt-row')){
+      container.classList.remove('empty');
+      container.textContent = '';
+      container.appendChild(rtDragRow);
+    }
+  });
+  const finish = ()=>{
+    if(!rtDragRow) return;
+    rtDragRow.classList.remove('dragging');
+    rtDragRow = null;
+    rtCommitOrder();
+  };
+  handle.addEventListener('pointerup', finish);
+  handle.addEventListener('pointercancel', finish);
+}
+function rtAttachDrop(container){ /* container is a valid drop target via pointermove */ }
 
-// ---------- block editor ----------
+function rtCommitOrder(){
+  const ordered = [];
+  document.querySelectorAll('#rt-groups .rt-rows').forEach(cont=>{
+    const gid = cont.dataset.group;
+    cont.querySelectorAll('.rt-row').forEach(r=>{
+      const b = rtState.blocks.find(x=>x.id===r.dataset.block);
+      if(b){ b.groupId = gid; ordered.push(b); }
+    });
+  });
+  rtState.blocks.forEach(b=>{ if(!ordered.includes(b)) ordered.push(b); });
+  rtState.blocks = ordered;
+  rtSave();
+  rtRenderToday();
+}
+
+/* ---------- block editor ---------- */
 const rtBlockOverlay = document.getElementById('rt-block-overlay');
-function rtSyncEditorFields(){
-  const type=document.getElementById('rt-b-type').value;
-  const wrap=document.getElementById('rt-b-target-wrap');
-  const tTime=document.getElementById('rt-b-target-time');
-  const tNum=document.getElementById('rt-b-target-num');
-  const label=document.getElementById('rt-b-target-label');
-  const hint=document.getElementById('rt-b-target-hint');
-  const promptWrap=document.getElementById('rt-b-prompt-wrap');
-  if(type==='time'){
-    wrap.style.display=''; tTime.style.display=''; tNum.style.display='none';
-    label.textContent='Target time'; hint.textContent='Shown next to the block. Wake and bed times also drive the sleep figure.';
-  } else if(type==='duration'){
-    wrap.style.display=''; tTime.style.display='none'; tNum.style.display='';
-    label.textContent='Target minutes'; hint.textContent='Any value above zero counts the block as done.';
-  } else {
-    wrap.style.display='none';
+function rtRenderDayPills(){
+  const wrap = document.getElementById('rt-b-days');
+  wrap.innerHTML='';
+  for(let i=0;i<7;i++){
+    const b=document.createElement('button');
+    b.textContent = RT_DOW[i];
+    b.title = RT_DOW_FULL[i];
+    if(rtDraftDays.charAt(i)==='1') b.classList.add('on');
+    b.addEventListener('click', ()=>{
+      const arr = rtDraftDays.split('');
+      arr[i] = arr[i]==='1' ? '0' : '1';
+      rtDraftDays = arr.join('');
+      rtRenderDayPills();
+    });
+    wrap.appendChild(b);
   }
-  promptWrap.style.display = type==='note' ? '' : 'none';
+}
+function rtSyncEditorFields(){
+  const type = document.getElementById('rt-b-type').value;
+  const tw = document.getElementById('rt-b-target-wrap');
+  const rw = document.getElementById('rt-b-role-wrap');
+  const lw = document.getElementById('rt-b-link-wrap');
+  const tl = document.getElementById('rt-b-target-label');
+  const ti = document.getElementById('rt-b-target');
+  if(type==='time'){ tw.style.display=''; tl.textContent='Target time (HH:MM)'; ti.placeholder='06:30'; rw.style.display=''; lw.style.display='none'; }
+  else if(type==='duration'){ tw.style.display=''; tl.textContent='Target minutes'; ti.placeholder='20'; rw.style.display='none'; lw.style.display='none'; }
+  else if(type==='check'){ tw.style.display='none'; rw.style.display='none'; lw.style.display=''; }
+  else { tw.style.display='none'; rw.style.display='none'; lw.style.display='none'; }
 }
 document.getElementById('rt-b-type').addEventListener('change', rtSyncEditorFields);
 
-function rtRenderDayPills(days){
-  const host=document.getElementById('rt-b-days');
-  host.innerHTML='';
-  DOW_TINY.forEach((lbl,i)=>{
-    const b=document.createElement('button'); b.type='button';
-    b.className='rt-daypill'+(days.indexOf(i)!==-1?' on':'');
-    b.textContent=lbl;
-    b.addEventListener('click', ()=>{
-      const k=days.indexOf(i);
-      if(k!==-1) days.splice(k,1); else days.push(i);
-      rtRenderDayPills(days);
-    });
-    host.appendChild(b);
-  });
-}
-
-function rtOpenBlockEditor(blockId, presetGroupId){
+function rtOpenBlockEditor(blockId, groupId){
   rtEditingBlockId = blockId;
-  const existing = blockId ? rtState.blocks.find(b=>b.id===blockId) : null;
-  rtEditingBlockDraft = {
-    days: existing ? (existing.days||RT_ALL_DAYS).slice() : RT_ALL_DAYS.slice()
-  };
-  document.getElementById('rt-block-title').textContent = existing ? 'Edit block' : 'Add block';
-  document.getElementById('rt-b-name').value = existing ? existing.name : '';
-  const groupSel=document.getElementById('rt-b-group');
-  groupSel.innerHTML = rtState.groups.map(g=>`<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
-  groupSel.value = existing ? existing.groupId : (presetGroupId || rtState.groups[0].id);
-  document.getElementById('rt-b-type').value = existing ? existing.type : 'check';
-  document.getElementById('rt-b-target-time').value = existing && existing.type==='time' ? (existing.target||'') : '';
-  document.getElementById('rt-b-target-num').value  = existing && existing.type==='duration' ? (existing.target||'') : '';
-  document.getElementById('rt-b-prompt').value = existing ? (existing.prompt||'') : '';
-  document.getElementById('rt-b-delete').style.display = existing ? '' : 'none';
-  const pauseBtn=document.getElementById('rt-b-pause');
-  pauseBtn.style.display = existing ? '' : 'none';
-  pauseBtn.textContent = existing && existing.paused ? 'Resume' : 'Pause';
+  const block = blockId ? rtState.blocks.find(b=>b.id===blockId) : null;
+  document.getElementById('rt-block-title').textContent = block ? 'Edit block' : 'Add block';
+  document.getElementById('rt-b-name').value = block ? block.name : '';
+  const gSel = document.getElementById('rt-b-group');
+  gSel.innerHTML = rtState.groups.map(g=>`<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+  gSel.value = block ? block.groupId : (groupId || (rtState.groups[0] && rtState.groups[0].id));
+  document.getElementById('rt-b-type').value = block ? block.type : 'check';
+  document.getElementById('rt-b-target').value = block && block.target!==null ? block.target : '';
+  document.getElementById('rt-b-role').value = block && block.role ? block.role : '';
+  document.getElementById('rt-b-link').value = block && block.link ? block.link : '';
+  document.getElementById('rt-b-note').value = block ? block.notePrompt : '';
+  rtDraftDays = block ? block.days : '1111111';
+  rtRenderDayPills();
   rtSyncEditorFields();
-  rtRenderDayPills(rtEditingBlockDraft.days);
+  document.getElementById('rt-b-delete').style.display = block ? '' : 'none';
+  const pauseBtn = document.getElementById('rt-b-pause');
+  pauseBtn.style.display = block ? '' : 'none';
+  pauseBtn.textContent = (block && block.paused) ? 'Resume' : 'Pause';
   rtBlockOverlay.classList.add('open');
 }
-document.getElementById('rt-b-cancel').addEventListener('click', ()=>rtBlockOverlay.classList.remove('open'));
+document.getElementById('rt-b-cancel').addEventListener('click', ()=> rtBlockOverlay.classList.remove('open'));
 document.getElementById('rt-b-pause').addEventListener('click', ()=>{
-  const b=rtState.blocks.find(x=>x.id===rtEditingBlockId);
+  const b = rtState.blocks.find(x=>x.id===rtEditingBlockId);
   if(!b) return;
-  b.paused=!b.paused; rtSave(); rtBlockOverlay.classList.remove('open'); renderRoutine();
+  b.paused = !b.paused;
+  rtSave(); rtBlockOverlay.classList.remove('open'); rtRenderToday();
 });
 document.getElementById('rt-b-delete').addEventListener('click', ()=>{
-  const b=rtState.blocks.find(x=>x.id===rtEditingBlockId);
+  const b = rtState.blocks.find(x=>x.id===rtEditingBlockId);
   if(!b) return;
-  if(!confirm(`Delete "${b.name}"? Past entries stay in your history but the block disappears from the routine.`)) return;
-  b.deleted=true; rtSave(); rtBlockOverlay.classList.remove('open'); renderRoutine();
+  if(!confirm(`Delete "${b.name}"? Its logged history stays in your data but it will no longer appear.`)) return;
+  rtState.blocks = rtState.blocks.filter(x=>x.id!==rtEditingBlockId);
+  rtSave(); rtBlockOverlay.classList.remove('open'); rtRenderAll();
 });
 document.getElementById('rt-b-save').addEventListener('click', ()=>{
-  const name=document.getElementById('rt-b-name').value.trim();
+  const name = document.getElementById('rt-b-name').value.trim();
   if(!name){ alert('Give the block a name.'); return; }
-  const type=document.getElementById('rt-b-type').value;
-  const groupId=document.getElementById('rt-b-group').value;
-  const prompt=document.getElementById('rt-b-prompt').value.trim();
-  let target;
-  if(type==='time') target=document.getElementById('rt-b-target-time').value || '';
-  else if(type==='duration') target=parseInt(document.getElementById('rt-b-target-num').value)||0;
-  let days=rtEditingBlockDraft.days.slice().sort();
-  if(!days.length) days=RT_ALL_DAYS.slice();
+  const type = document.getElementById('rt-b-type').value;
+  const groupId = document.getElementById('rt-b-group').value;
+  const rawTarget = document.getElementById('rt-b-target').value.trim();
+  let target = null;
+  if(type==='time' && rawTarget) target = rawTarget;
+  if(type==='duration' && rawTarget) target = parseInt(rawTarget)||null;
+  const role = type==='time' ? (document.getElementById('rt-b-role').value || null) : null;
+  const link = type==='check' ? (document.getElementById('rt-b-link').value || null) : null;
+  const notePrompt = document.getElementById('rt-b-note').value.trim();
+  const days = rtDraftDays.indexOf('1')<0 ? '1111111' : rtDraftDays;
+
+  if(role){
+    rtState.blocks.forEach(b=>{ if(b.id!==rtEditingBlockId && b.role===role) b.role=null; });
+  }
 
   if(rtEditingBlockId){
-    const b=rtState.blocks.find(x=>x.id===rtEditingBlockId);
-    const groupChanged = b.groupId!==groupId;
-    b.name=name; b.type=type; b.groupId=groupId; b.days=days;
-    b.target=target; b.prompt=prompt;
-    if(groupChanged) rtMoveToGroupEnd(b.id, groupId);
-  } else {
-    const b={id:uid(), name, type, groupId, days, target, prompt};
-    let lastIdx=-1;
-    rtState.blocks.forEach((x,i)=>{ if(x.groupId===groupId) lastIdx=i; });
-    rtState.blocks.splice(lastIdx+1, 0, b);
+    const b = rtState.blocks.find(x=>x.id===rtEditingBlockId);
+    Object.assign(b, { name, type, groupId, target, role, link, notePrompt, days });
+  }else{
+    rtState.blocks.push({ id: uid(), name, type, groupId, target, role, link, notePrompt, days, paused:false, since: todayStr() });
   }
   rtSave();
   rtBlockOverlay.classList.remove('open');
-  renderRoutine();
+  rtRenderAll();
 });
 
-// ---------- stats ----------
-function rtBuckets(mode){
-  const out=[];
-  const today=new Date(); today.setHours(0,0,0,0);
-  const push=(label,dates)=>out.push({label,dates});
-  if(mode==='daily'){
-    const span = window.innerWidth<640 ? 14 : 28;
-    for(let i=span-1;i>=0;i--){
-      const d=new Date(today.getTime()-i*86400000);
-      push(String(d.getDate()), [localDateStr(d)]);
+/* ---------- stats ---------- */
+document.querySelectorAll('#rt-gran button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    rtGran = btn.dataset.g;
+    document.querySelectorAll('#rt-gran button').forEach(b=> b.classList.toggle('active', b.dataset.g===rtGran));
+    rtOpenDetail = null;
+    rtRenderStats();
+  });
+});
+
+function rtBuckets(){
+  const today = todayStr();
+  const out = [];
+  if(rtGran==='daily'){
+    for(let i=27;i>=0;i--){
+      const d = rtShift(today,-i);
+      out.push({ label: String(new Date(d+'T00:00:00').getDate()), dates:[d], key:d });
     }
-  } else if(mode==='weekly'){
-    const sun=new Date(today); sun.setDate(sun.getDate()-sun.getDay());
-    for(let w=7;w>=0;w--){
-      const ws=new Date(sun.getTime()-w*7*86400000);
+  } else if(rtGran==='weekly'){
+    let end = today;
+    const endDow = rtDow(end);
+    let weekStart = rtShift(end, -endDow);
+    const starts = [];
+    for(let i=7;i>=0;i--) starts.push(rtShift(weekStart, -7*i));
+    starts.forEach(s=>{
       const dates=[];
-      for(let k=0;k<7;k++){ const d=new Date(ws.getTime()+k*86400000); if(d<=today) dates.push(localDateStr(d)); }
-      push((ws.getMonth()+1)+'/'+ws.getDate(), dates);
-    }
+      for(let i=0;i<7;i++){ const d=rtShift(s,i); if(d<=today) dates.push(d); }
+      const dd = new Date(s+'T00:00:00');
+      out.push({ label: (dd.getMonth()+1)+'/'+dd.getDate(), dates, key:s });
+    });
   } else {
-    for(let m=5;m>=0;m--){
-      const first=new Date(today.getFullYear(), today.getMonth()-m, 1);
-      const dim=new Date(first.getFullYear(), first.getMonth()+1, 0).getDate();
+    const now = new Date(today+'T00:00:00');
+    for(let i=5;i>=0;i--){
+      const m = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      const days = new Date(m.getFullYear(), m.getMonth()+1, 0).getDate();
       const dates=[];
-      for(let k=1;k<=dim;k++){ const d=new Date(first.getFullYear(), first.getMonth(), k); if(d<=today) dates.push(localDateStr(d)); }
-      push(first.toLocaleDateString('en-US',{month:'short'}), dates);
+      for(let dnum=1; dnum<=days; dnum++){
+        const d = toDateStr(new Date(m.getFullYear(), m.getMonth(), dnum));
+        if(d<=today) dates.push(d);
+      }
+      out.push({ label: m.toLocaleDateString('en-US',{month:'short'}), dates, key: m.getFullYear()+'-'+(m.getMonth()+1) });
     }
   }
   return out;
 }
-function rtBlockBucketValue(block, dates){
-  let done=0, total=0;
-  dates.forEach(d=>{
-    if(!rtScheduled(block,d)) return;
-    if(rtIsSkipped(d,block.id)) return;
-    total++; if(rtIsDone(block,d)) done++;
+
+function rtBucketPct(block, bucket){
+  let done=0, considered=0;
+  bucket.dates.forEach(d=>{
+    const s = rtStatus(block, d);
+    if(s==='done'){ done++; considered++; }
+    else if(s==='missed'){ considered++; }
   });
-  return total ? done/total : null;
+  if(!considered) return null;
+  return Math.round(done/considered*100);
 }
-function rtCellStyle(v){
-  if(v===null) return 'na';
-  if(v===0) return 'zero';
-  return '';
+function rtBucketValue(block, bucket){
+  if(block.type==='duration'){
+    const vals = bucket.dates.map(d=>{ const e=rtEntry(d,block.id); return (e&&typeof e.minutes==='number'&&e.minutes>0)?e.minutes:null; }).filter(v=>v!==null);
+    if(!vals.length) return null;
+    return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  }
+  if(block.type==='time'){
+    const vals = bucket.dates.map(d=>{ const e=rtEntry(d,block.id); return (e&&e.time)?rtToMin(e.time):null; }).filter(v=>v!==null);
+    if(!vals.length) return null;
+    return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  }
+  return rtBucketPct(block, bucket);
 }
 
-function renderRtStats(){
-  const buckets = rtBuckets(rtRange);
-  const blocks = rtActiveBlocks(false);
-  const host = document.getElementById('rt-matrix');
-  host.innerHTML='';
-  document.querySelectorAll('[data-range]').forEach(b=>b.classList.toggle('on', b.dataset.range===rtRange));
-  document.getElementById('rt-range-hint').textContent =
-    rtRange==='daily' ? 'Last 28 days' : rtRange==='weekly' ? 'Last 8 weeks' : 'Last 6 months';
+function rtWeakestDow(){
+  const tally = [0,1,2,3,4,5,6].map(()=>({done:0,total:0}));
+  Object.keys(rtState.log).forEach(()=>{});
+  const today = todayStr();
+  for(let i=0;i<90;i++){
+    const d = rtShift(today,-i);
+    rtState.blocks.forEach(b=>{
+      const s = rtStatus(b,d);
+      if(s==='done'){ tally[rtDow(d)].done++; tally[rtDow(d)].total++; }
+      else if(s==='missed'){ tally[rtDow(d)].total++; }
+    });
+  }
+  let worst=null, worstPct=101;
+  tally.forEach((t,i)=>{
+    if(t.total<3) return;
+    const p = t.done/t.total*100;
+    if(p<worstPct){ worstPct=p; worst=i; }
+  });
+  return worst===null ? '—' : RT_DOW_FULL[worst].slice(0,3);
+}
 
-  const labelW = window.innerWidth<640 ? 92 : 150;
-  const cols = `${labelW}px repeat(${buckets.length}, minmax(0,1fr)) 40px`;
+function rtRenderStats(){
+  const buckets = rtBuckets();
+  document.getElementById('rt-range-label').textContent =
+    rtGran==='daily' ? 'Last 28 days' : rtGran==='weekly' ? 'Last 8 weeks' : 'Last 6 months';
 
-  if(!blocks.length){
-    host.innerHTML='<div class="empty-hint">Add a block on the Today tab to start tracking.</div>';
+  const allDates = buckets.flatMap(b=>b.dates);
+  let done=0, considered=0;
+  rtState.blocks.forEach(b=> allDates.forEach(d=>{
+    const s = rtStatus(b,d);
+    if(s==='done'){ done++; considered++; } else if(s==='missed'){ considered++; }
+  }));
+  const overall = considered ? Math.round(done/considered*100) : 0;
+
+  const sleeps = allDates.map(rtSleepFor).filter(v=>v!==null);
+  const avgSleep = sleeps.length ? rtFmtDur(sleeps.reduce((a,b)=>a+b,0)/sleeps.length) : '—';
+  const wakeB = rtState.blocks.find(b=>b.role==='wake');
+  let avgWake = '—';
+  if(wakeB){
+    const ws = allDates.map(d=>{ const e=rtEntry(d,wakeB.id); return (e&&e.time)?rtToMin(e.time):null; }).filter(v=>v!==null);
+    if(ws.length) avgWake = rtFromMin(ws.reduce((a,b)=>a+b,0)/ws.length);
+  }
+
+  document.getElementById('rt-stat-metrics').innerHTML = [
+    ['Overall', overall+'%'],
+    ['Avg sleep', avgSleep],
+    ['Avg wake', avgWake],
+    ['Weakest day', rtWeakestDow()]
+  ].map(([l,v])=>`<div class="rt-metric"><div class="l">${l}</div><div class="v">${escapeHtml(String(v))}</div></div>`).join('');
+
+  const cols = `150px repeat(${buckets.length}, minmax(0,1fr)) 46px`;
+  const mx = document.getElementById('rt-matrix');
+  mx.innerHTML = '';
+
+  const head = document.createElement('div');
+  head.className='rt-mx-head'; head.style.gridTemplateColumns = cols;
+  head.innerHTML = '<span></span>' + buckets.map(b=>`<span class="rt-mx-tick">${escapeHtml(b.label)}</span>`).join('') + '<span></span>';
+  mx.appendChild(head);
+
+  if(!rtState.blocks.length){
+    const p=document.createElement('div'); p.className='empty-hint';
+    p.textContent='No routine blocks yet — add some on the Today tab.';
+    mx.appendChild(p);
     return;
   }
 
-  const totalRow=document.createElement('div');
-  totalRow.className='rt-matrix'; totalRow.style.gridTemplateColumns=cols;
-  totalRow.style.paddingBottom='6px'; totalRow.style.borderBottom='0.5px solid var(--bd)'; totalRow.style.marginBottom='8px';
-  const tl=document.createElement('span'); tl.className='rt-mlabel total'; tl.textContent='All blocks';
-  totalRow.appendChild(tl);
-  let grandDone=0, grandTotal=0;
-  buckets.forEach(bk=>{
-    let d=0,t=0;
-    blocks.forEach(b=>{
-      bk.dates.forEach(dt=>{
-        if(!rtScheduled(b,dt) || rtIsSkipped(dt,b.id)) return;
-        t++; if(rtIsDone(b,dt)) d++;
-      });
-    });
-    grandDone+=d; grandTotal+=t;
-    const v = t ? d/t : null;
-    const cell=document.createElement('div');
-    cell.className='rt-cell '+rtCellStyle(v);
-    if(v!==null && v>0) cell.style.opacity = (0.3+0.7*v).toFixed(2);
-    cell.title = bk.label+' — '+(v===null?'nothing scheduled':Math.round(v*100)+'%');
-    totalRow.appendChild(cell);
-  });
-  const tp=document.createElement('span'); tp.className='rt-mpct';
-  tp.textContent = grandTotal ? Math.round(grandDone/grandTotal*100)+'%' : '—';
-  totalRow.appendChild(tp);
-  host.appendChild(totalRow);
+  rtState.blocks.forEach(block=>{
+    const row = document.createElement('div');
+    row.className='rt-mx-row'; row.style.gridTemplateColumns = cols;
 
-  blocks.forEach(b=>{
-    const row=document.createElement('div'); row.className='rt-matrix'; row.style.gridTemplateColumns=cols;
-    const lbl=document.createElement('span'); lbl.className='rt-mlabel'; lbl.textContent=b.name; lbl.title=b.name;
+    const lbl = document.createElement('button');
+    lbl.className='rt-mx-label'; lbl.textContent = block.name; lbl.title = block.name;
+    lbl.addEventListener('click', ()=>{
+      rtOpenDetail = (rtOpenDetail===block.id) ? null : block.id;
+      rtRenderStats();
+    });
     row.appendChild(lbl);
-    let sd=0, st=0;
-    buckets.forEach(bk=>{
-      const v=rtBlockBucketValue(b, bk.dates);
-      bk.dates.forEach(dt=>{
-        if(!rtScheduled(b,dt) || rtIsSkipped(dt,b.id)) return;
-        st++; if(rtIsDone(b,dt)) sd++;
+
+    let tDone=0, tCons=0;
+    buckets.forEach(b=>{
+      const pct = rtBucketPct(block,b);
+      const cell = document.createElement('div');
+      if(pct===null){ cell.className='rt-mx-cell na'; }
+      else{
+        cell.className='rt-mx-cell' + (pct>0?' f':'');
+        if(pct>0) cell.style.opacity = Math.max(0.18, pct/100).toFixed(2);
+        cell.title = b.label + ' · ' + pct + '%';
+      }
+      b.dates.forEach(d=>{
+        const s = rtStatus(block,d);
+        if(s==='done'){ tDone++; tCons++; } else if(s==='missed'){ tCons++; }
       });
-      const cell=document.createElement('div');
-      cell.className='rt-cell '+rtCellStyle(v);
-      if(v!==null && v>0) cell.style.opacity=(0.3+0.7*v).toFixed(2);
-      cell.title = b.name+' · '+bk.label+' — '+(v===null?'not scheduled':Math.round(v*100)+'%');
       row.appendChild(cell);
     });
-    const pct=document.createElement('span'); pct.className='rt-mpct';
-    pct.textContent = st ? Math.round(sd/st*100)+'%' : '—';
-    row.appendChild(pct);
-    host.appendChild(row);
-  });
 
-  const axis=document.createElement('div'); axis.className='rt-matrix'; axis.style.gridTemplateColumns=cols; axis.style.marginTop='4px';
-  axis.appendChild(document.createElement('span'));
-  buckets.forEach((bk,i)=>{
-    const s=document.createElement('span'); s.className='rt-axis';
-    const every = rtRange==='daily' ? (window.innerWidth<640 ? 7 : 7) : 1;
-    s.textContent = (i % every !== 0 && rtRange==='daily') ? '' : bk.label;
-    axis.appendChild(s);
-  });
-  axis.appendChild(document.createElement('span'));
-  host.appendChild(axis);
+    const pctEl = document.createElement('span');
+    pctEl.className='rt-mx-pct';
+    pctEl.textContent = tCons ? Math.round(tDone/tCons*100)+'%' : '—';
+    row.appendChild(pctEl);
 
-  renderRtStatMetrics();
-  renderRtWeekday();
-}
+    mx.appendChild(row);
 
-function renderRtStatMetrics(){
-  const wrap=document.getElementById('rt-stat-metrics');
-  wrap.innerHTML='';
-  const buckets=rtBuckets(rtRange);
-  const dates=[].concat(...buckets.map(b=>b.dates));
-  let done=0,total=0;
-  rtActiveBlocks(false).forEach(b=>dates.forEach(d=>{
-    if(!rtScheduled(b,d) || rtIsSkipped(d,b.id)) return;
-    total++; if(rtIsDone(b,d)) done++;
-  }));
-  wrap.appendChild(rtMetricEl('Overall', total?Math.round(done/total*100)+'%':'—'));
-
-  const sleeps=dates.map(rtSleepMinutes).filter(v=>v!==null);
-  wrap.appendChild(rtMetricEl('Avg sleep', sleeps.length?rtFmtDuration(sleeps.reduce((a,b)=>a+b,0)/sleeps.length):'—'));
-
-  const wakeB=rtState.blocks.find(b=>b.role==='wake');
-  let wakeLabel='Avg wake', wakeVal='—';
-  if(wakeB){
-    const mins=dates.map(d=>{const e=rtEntry(d,wakeB.id); return e&&e.time?rtMinutesFromTime(e.time):null;}).filter(v=>v!==null);
-    if(mins.length){
-      const avg=mins.reduce((a,b)=>a+b,0)/mins.length;
-      const sd=Math.sqrt(mins.reduce((a,b)=>a+(b-avg)*(b-avg),0)/mins.length);
-      wakeVal=rtFmtMinutes(avg);
-      wakeLabel='Avg wake ±'+Math.round(sd)+'m';
+    if(rtOpenDetail===block.id){
+      const det = document.createElement('div');
+      det.className='rt-detail';
+      det.innerHTML = rtDetailChart(block, buckets);
+      mx.appendChild(det);
     }
-  }
-  wrap.appendChild(rtMetricEl(wakeLabel, wakeVal));
-
-  const wk=rtWeekdayRates(90);
-  let worst=null;
-  wk.forEach((r,i)=>{ if(r.total>=3 && (worst===null || r.done/r.total < wk[worst].done/wk[worst].total)) worst=i; });
-  wrap.appendChild(rtMetricEl('Weakest day', worst===null?'—':DOW_SHORT[worst]));
-}
-
-function rtWeekdayRates(lookback){
-  const out=DOW_SHORT.map(()=>({done:0,total:0}));
-  let d=todayStr();
-  for(let i=0;i<lookback;i++){
-    const dow=rtDow(d);
-    rtActiveBlocks(false).forEach(b=>{
-      if(!rtScheduled(b,d) || rtIsSkipped(d,b.id)) return;
-      out[dow].total++; if(rtIsDone(b,d)) out[dow].done++;
-    });
-    d=rtShiftDate(d,-1);
-  }
-  return out;
-}
-
-function renderRtWeekday(){
-  const host=document.getElementById('rt-weekday');
-  const rates=rtWeekdayRates(90);
-  host.innerHTML='';
-  rates.forEach((r,i)=>{
-    const pct = r.total ? Math.round(r.done/r.total*100) : 0;
-    const wrap=document.createElement('div');
-    wrap.innerHTML = `<div class="prog-label"><span>${DOW_SHORT[i]}</span><span style="color:var(--tm)">${r.total?pct+'%':'—'}</span></div>
-      <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>`;
-    host.appendChild(wrap);
   });
-  const note=document.createElement('div'); note.className='hint';
-  note.textContent='Last 90 days, across every scheduled block.';
-  host.appendChild(note);
 }
 
-// ---------- routine render ----------
-function renderRoutine(){
-  const isToday = rtSubView==='today';
-  document.getElementById('rt-today-view').style.display = isToday ? '' : 'none';
-  document.getElementById('rt-stats-view').style.display = isToday ? 'none' : '';
-  document.getElementById('rt-datenav').style.display = isToday ? '' : 'none';
-  document.getElementById('rt-sub-today').classList.toggle('on', isToday);
-  document.getElementById('rt-sub-stats').classList.toggle('on', !isToday);
-  const editBtn=document.getElementById('rt-edit-toggle');
-  editBtn.classList.toggle('on', rtEditMode);
-  editBtn.innerHTML = rtEditMode
-    ? '<i class="ti ti-check" style="font-size:12px;vertical-align:-2px;margin-right:4px"></i>Done'
-    : '<i class="ti ti-pencil" style="font-size:12px;vertical-align:-2px;margin-right:4px"></i>Edit';
-  document.getElementById('rt-add-group').style.display = (isToday && rtEditMode) ? '' : 'none';
-  document.getElementById('rt-metrics').style.display = rtEditMode ? 'none' : '';
+function rtDetailChart(block, buckets){
+  const vals = buckets.map(b=> rtBucketValue(block,b));
+  const present = vals.filter(v=>v!==null);
+  if(!present.length) return '<div style="font-size:12px;color:var(--tm)">No data logged for this block yet.</div>';
 
-  const d=new Date(rtViewDate+'T00:00:00');
-  let label=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  if(rtViewDate===todayStr()) label='Today · '+label;
-  document.getElementById('rt-date-label').textContent=label;
+  const isTime = block.type==='time';
+  const isDur = block.type==='duration';
+  const unit = isTime ? '' : isDur ? ' min' : '%';
+  const fmt = v => isTime ? rtFromMin(v) : (Math.round(v)+unit);
 
-  if(isToday){ if(!rtEditMode) renderRtMetrics(); renderRtGroups(); }
-  else renderRtStats();
+  let min = Math.min(...present), max = Math.max(...present);
+  if(!isTime && !isDur){ min = 0; max = 100; }
+  if(min===max){ min = Math.max(0,min-10); max = max+10; }
+
+  const targetVal = isTime && block.target ? rtToMin(block.target) : (isDur && block.target ? block.target : null);
+  if(targetVal!==null){ min = Math.min(min,targetVal); max = Math.max(max,targetVal); }
+
+  const w=560,h=130,padL=42,padR=10,padT=10,padB=20;
+  const plotW=w-padL-padR, plotH=h-padT-padB;
+  const stepX = buckets.length>1 ? plotW/(buckets.length-1) : 0;
+  const range = (max-min)||1;
+  const xFor = i => padL + i*stepX;
+  const yFor = v => padT + plotH - ((v-min)/range)*plotH;
+
+  const ticks = [min, min+range/2, max];
+  const grid = ticks.map(t=>{
+    const y=yFor(t);
+    return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w-padR}" y2="${y.toFixed(1)}" stroke="#DFE4E2" stroke-width="1"/>
+      <text x="${padL-5}" y="${(y+3).toFixed(1)}" font-size="9" fill="#8A9592" text-anchor="end">${fmt(t)}</text>`;
+  }).join('');
+
+  const targetLine = targetVal!==null
+    ? `<line x1="${padL}" y1="${yFor(targetVal).toFixed(1)}" x2="${w-padR}" y2="${yFor(targetVal).toFixed(1)}" stroke="#0E9488" stroke-width="1" stroke-dasharray="4 3" opacity="0.7"/>`
+    : '';
+
+  const segs=[]; let cur=[];
+  vals.forEach((v,i)=>{
+    if(v===null){ if(cur.length){segs.push(cur);cur=[];} return; }
+    cur.push([xFor(i), yFor(v)]);
+  });
+  if(cur.length) segs.push(cur);
+
+  const lines = segs.map(sg=>{
+    const path = sg.map((c,i)=>(i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' ');
+    return `<path d="${path}" fill="none" stroke="#0E9488" stroke-width="2"/>`;
+  }).join('');
+  const dots = segs.flat().map(c=>`<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="2.5" fill="#0E9488"/>`).join('');
+
+  const caption = isTime ? 'average clock time' : isDur ? 'average minutes per session' : 'completion rate';
+  return `<div style="font-size:11px;color:var(--tm);margin-bottom:6px">${escapeHtml(block.name)} · ${caption}${targetVal!==null?' · dashed line is your target':''}</div>
+  <svg viewBox="0 0 ${w} ${h}" style="width:100%" role="img" aria-label="${escapeHtml(block.name)} trend">
+    ${grid}${targetLine}${lines}${dots}
+    <text x="${padL}" y="${h-4}" font-size="9" fill="#8A9592">${escapeHtml(buckets[0].label)}</text>
+    <text x="${w-padR}" y="${h-4}" font-size="9" fill="#8A9592" text-anchor="end">${escapeHtml(buckets[buckets.length-1].label)}</text>
+  </svg>`;
 }
 
-// ---------- init ----------
+/* ---------- init ---------- */
+function rtRenderAll(){
+  if(rtSub==='today') rtRenderToday(); else rtRenderStats();
+}
+
 currentPlanId = mostRecentPlanId();
-if(state.plans.length){ renderPlanBar(); renderCards(); }
-renderInsights();
-renderRoutine();
+renderAll();
+rtRenderAll();
 </script>
 </body>
 </html>
