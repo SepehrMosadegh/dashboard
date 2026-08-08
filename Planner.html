@@ -957,6 +957,9 @@ function renderWorkout(){
   if(!currentPlanId||!getCurrentPlan())currentPlanId=mostRecentPlanId();
   renderPlanBar();renderCards();renderInsights();
 }
+function workoutCoveredOn(date){
+  return state.plans.some(p=>date>=p.startDate&&date<=p.endDate);
+}
 function workoutNameOn(date){
   for(const p of state.plans) for(const c of p.cards) if(c.logs&&c.logs[date]) return c.name;
   return null;
@@ -1415,7 +1418,7 @@ function rtPatch(date,id,patch){
 }
 function rtScheduled(b,date){
   if(b.paused)return false;
-  if(b.type==='workout')return true;   /* tracked weekly, not by weekday */
+  if(b.type==='workout')return workoutCoveredOn(date)||workoutNameOn(date);
   return b.days.charAt(rtDow(date))==='1';
 }
 /* Sunday-start week containing `date`, as date strings */
@@ -1431,10 +1434,13 @@ function rtWeekSessions(date){ return rtWeekOf(date).filter(dt=>workoutNameOn(dt
 /* status: na | done | missed | skipped — na never counts toward the day total */
 function rtStatus(b,date){
   if(b.paused)return 'na';
-  /* workout reads straight off the workout log, so it ignores `since`
-     entirely — history that predates the block still counts. it also
-     never reads as "missed", because the target is weekly not daily. */
-  if(b.type==='workout') return workoutNameOn(date)?'done':'na';
+  /* workout reads straight off the workout log rather than `since` —
+     but a date before any plan existed is genuinely unscheduled, not a
+     miss, so it still needs to check plan coverage. */
+  if(b.type==='workout'){
+    if(workoutNameOn(date))return 'done';
+    return workoutCoveredOn(date)?'missed':'na';
+  }
   if(b.since&&date<b.since)return 'na';
   if(!rtScheduled(b,date))return 'na';
   const e=rtEntry(date,b.id);
@@ -1853,7 +1859,9 @@ function rtBuckets(mode){
 function rtRate(block,dates){
   if(block.type==='workout'){
     if(block.paused||!dates.length)return {v:null,d:0,t:0};
-    const sessions=dates.filter(dt=>workoutNameOn(dt)).length;
+    const covered=dates.filter(dt=>workoutCoveredOn(dt)||workoutNameOn(dt));
+    if(!covered.length)return {v:null,d:0,t:0};
+    const sessions=covered.filter(dt=>workoutNameOn(dt)).length;
     /* a single day can't be judged against a *weekly* target — that would
        dock every rest day even when the week is exactly on pace. Only
        score against the weekly target once the bucket spans close to a
@@ -1861,7 +1869,7 @@ function rtRate(block,dates){
     if(dates.length<4){
       return sessions>0 ? {v:1,d:1,t:1} : {v:null,d:0,t:0};
     }
-    const expected=(block.perWeek||3)*dates.length/7;
+    const expected=(block.perWeek||3)*covered.length/7;
     if(expected<=0)return {v:null,d:0,t:0};
     return {v:Math.min(1,sessions/expected),d:sessions,t:Math.max(1,Math.round(expected))};
   }
