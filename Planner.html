@@ -449,7 +449,8 @@ button:disabled:hover{background:var(--s1)}
         <option value="check">Check off</option>
         <option value="time">Clock time</option>
         <option value="duration">Duration</option>
-        <option value="journal">Journal</option>
+        <option value="note">Note field</option>
+        <option value="journal">Journal (daily prompt)</option>
         <option value="workout">Workout (automatic)</option>
       </select></div>
     </div>
@@ -461,7 +462,12 @@ button:disabled:hover{background:var(--s1)}
         <option value="bed">Bed time</option>
       </select></div>
     </div>
-    <div class="field">
+    <div class="field" id="rt-b-prompt-wrap" style="display:none">
+      <label>Question</label>
+      <input type="text" id="rt-b-prompt" placeholder="What did you read or listen to?">
+      <div class="hint">Shown above the answer box every day.</div>
+    </div>
+    <div class="field" id="rt-b-days-wrap">
       <label>Days</label>
       <div class="rt-days" id="rt-b-days"></div>
       <div class="hint">Unchecked days are not counted as missed.</div>
@@ -1372,8 +1378,9 @@ function rtNormalize(d){
     if(b.link==='workout')b.type='workout';   /* migrate old link flag onto type */
     if(b.target===undefined)b.target=null;
     if(b.role===undefined)b.role=null;
-    delete b.prompts; delete b.notePrompt;   /* prompts now come from the calendar */
-    if(b.type==='note')b.type='journal';
+    delete b.prompts;   /* journal prompts come from the calendar now */
+    if(typeof b.notePrompt!=='string')b.notePrompt='';
+    if(b.type==='workout'&&typeof b.perWeek!=='number')b.perWeek=3;
     if(!gids.has(b.groupId))b.groupId=d.groups[0].id;
     if(typeof b.since!=='string'){
       let first=null;
@@ -1406,20 +1413,37 @@ function rtPatch(date,id,patch){
   rtState.log[date][id]=Object.assign({},rtState.log[date][id]||{},patch);
   rtSave();
 }
-function rtScheduled(b,date){ if(b.paused)return false; return b.days.charAt(rtDow(date))==='1'; }
+function rtScheduled(b,date){
+  if(b.paused)return false;
+  if(b.type==='workout')return true;   /* tracked weekly, not by weekday */
+  return b.days.charAt(rtDow(date))==='1';
+}
+/* Sunday-start week containing `date`, as date strings */
+function rtWeekOf(date){
+  const d=new Date(date+'T00:00:00');
+  const sun=new Date(d);sun.setDate(sun.getDate()-sun.getDay());
+  const out=[];
+  for(let i=0;i<7;i++){const x=new Date(sun);x.setDate(sun.getDate()+i);out.push(localDateStr(x));}
+  return out;
+}
+function rtWeekSessions(date){ return rtWeekOf(date).filter(dt=>workoutNameOn(dt)).length; }
 
 /* status: na | done | missed | skipped — na never counts toward the day total */
 function rtStatus(b,date){
   if(b.paused)return 'na';
+  /* workout reads straight off the workout log, so it ignores `since`
+     entirely — history that predates the block still counts. it also
+     never reads as "missed", because the target is weekly not daily. */
+  if(b.type==='workout') return workoutNameOn(date)?'done':'na';
   if(b.since&&date<b.since)return 'na';
   if(!rtScheduled(b,date))return 'na';
-  if(b.type==='workout') return workoutNameOn(date)?'done':(date>todayStr()?'na':'missed');
   const e=rtEntry(date,b.id);
   if(e&&e.skipped)return 'skipped';
   if(e){
     if(b.type==='time'     && e.time)                    return 'done';
     if(b.type==='duration' && (e.minutes||0)>0)          return 'done';
     if(b.type==='journal'  && (e.done || (e.note && e.note.trim()))) return 'done';
+    if(b.type==='note'     && (e.done || (e.note && e.note.trim()))) return 'done';
     if(b.type==='check'    && e.done)                    return 'done';
   }
   if(date>todayStr())return 'na';
@@ -1454,6 +1478,7 @@ function rtSleepFor(date){
   return (dur>0&&dur<=16*60)?dur:null;
 }
 function rtPromptFor(b,date){
+  if(b.type==='note')return b.notePrompt||'';
   const d=new Date(date+'T00:00:00');
   const month=JOURNAL_PROMPTS[d.getMonth()]||[];
   return month[d.getDate()-1]||'';
@@ -1532,7 +1557,7 @@ function rtRowEl(block){
   const date=rtDate;
   const row=document.createElement('div');row.className='rt-row';row.dataset.block=block.id;
   const status=rtStatus(block,date);
-  const scheduled=rtScheduled(block,date)&&!(block.since&&date<block.since);
+  const scheduled=rtScheduled(block,date)&&(block.type==='workout'||!(block.since&&date<block.since));
   if(status==='na')row.classList.add('na');
 
   if(rtEditMode){
@@ -1544,7 +1569,7 @@ function rtRowEl(block){
     tick.innerHTML=`<i class="ti ti-${status==='done'?'circle-check':status==='skipped'?'circle-minus':'circle'}"></i>`;
     if(block.type==='workout'){ tick.disabled=true; tick.title='Set automatically by the workout tab'; }
     else if(block.type==='time'||block.type==='duration'){ tick.disabled=true; tick.title='Fill in the value to complete this'; }
-    else if(block.type==='journal'){
+    else if(block.type==='journal'||block.type==='note'){
       tick.title='Mark answered';
       tick.addEventListener('click',()=>{
         const e=rtEntry(date,block.id);
@@ -1565,19 +1590,25 @@ function rtRowEl(block){
   main.appendChild(nm);
   const bits=[];
   if(rtEditMode){
-    bits.push({check:'Check off',time:'Clock time',duration:'Duration',journal:'Journal',workout:'Workout (auto)'}[block.type]||block.type);
-    if(block.days!=='1111111')bits.push(block.days.split('').map((c,i)=>c==='1'?RT_DOW3[i]:null).filter(Boolean).join(' '));
+    bits.push({check:'Check off',time:'Clock time',duration:'Duration',note:'Note field',journal:'Journal',workout:'Workout (auto)'}[block.type]||block.type);
+    if(block.type==='workout')bits.push((block.perWeek||3)+'×/week');
+    else if(block.days!=='1111111')bits.push(block.days.split('').map((c,i)=>c==='1'?RT_DOW3[i]:null).filter(Boolean).join(' '));
     if(block.paused)bits.push('Paused');
   }else{
     if(block.type==='time'&&block.target)bits.push('target '+block.target);
     if(block.type==='duration'&&block.target)bits.push('target '+block.target+' min');
+    if(block.type==='workout'){
+      const per=block.perWeek||3, got=rtWeekSessions(date);
+      bits.push(got+' of '+per+' this week');
+    }
     if(block.paused)bits.push('paused');
     else if(!rtScheduled(block,date))bits.push('not scheduled today');
+    else if(block.type!=='workout'&&block.since&&date<block.since)bits.push('not tracked yet');
     if(status==='skipped')bits.push('skipped');
   }
   if(bits.length){const s=document.createElement('div');s.className='rt-sub';s.textContent=bits.join(' · ');main.appendChild(s);}
 
-  if(!rtEditMode&&block.type==='journal'&&scheduled&&status!=='skipped'){
+  if(!rtEditMode&&(block.type==='journal'||block.type==='note')&&scheduled&&status!=='skipped'){
     const q=rtPromptFor(block,date);
     if(q){const p=document.createElement('div');p.className='rt-prompt';p.textContent=q;main.appendChild(p);}
     const e=rtEntry(date,block.id);
@@ -1602,7 +1633,8 @@ function rtRowEl(block){
     p.addEventListener('click',()=>rtOpenBlockEditor(block.id,null));
     ctrl.appendChild(p);
   }else if(!scheduled){
-    const b=document.createElement('span');b.className='rt-badge grey';b.textContent=block.paused?'Paused':'Off day';ctrl.appendChild(b);
+    const b=document.createElement('span');b.className='rt-badge grey';
+    b.textContent=block.paused?'Paused':(block.type!=='workout'&&block.since&&date<block.since?'Not tracked':'Off day');ctrl.appendChild(b);
   }else if(status==='skipped'){
     const u=document.createElement('button');u.className='rt-mini';u.title='Un-skip';
     u.innerHTML='<i class="ti ti-arrow-back-up" style="font-size:13px"></i>';
@@ -1714,9 +1746,14 @@ function rtSyncEditorFields(){
   const trw=document.getElementById('rt-b-tr-wrap');
   const tl=document.getElementById('rt-b-target-label');
   const ti=document.getElementById('rt-b-target');
+  const pw=document.getElementById('rt-b-prompt-wrap');
+  const dw=document.getElementById('rt-b-days-wrap');
   if(type==='time'){tw.style.display='';rw.style.display='';trw.style.display='';tl.textContent='Target time (HH:MM)';ti.placeholder='06:30';}
   else if(type==='duration'){tw.style.display='';rw.style.display='none';trw.style.display='';tl.textContent='Target minutes';ti.placeholder='20';}
+  else if(type==='workout'){tw.style.display='';rw.style.display='none';trw.style.display='';tl.textContent='Sessions per week';ti.placeholder='3';}
   else{trw.style.display='none';}
+  pw.style.display = type==='note'?'':'none';
+  dw.style.display = type==='workout'?'none':'';
 }
 document.getElementById('rt-b-type').addEventListener('change',rtSyncEditorFields);
 function rtRenderDayPills(){
@@ -1739,7 +1776,9 @@ function rtOpenBlockEditor(blockId,groupId){
   gs.innerHTML=rtState.groups.map(g=>`<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
   gs.value=b?b.groupId:(groupId||(rtState.groups[0]&&rtState.groups[0].id));
   document.getElementById('rt-b-type').value=b?b.type:'check';
-  document.getElementById('rt-b-target').value=(b&&b.target!==null&&b.target!==undefined)?b.target:'';
+  document.getElementById('rt-b-target').value=(b&&b.type==='workout')?(b.perWeek||3)
+    :((b&&b.target!==null&&b.target!==undefined)?b.target:'');
+  document.getElementById('rt-b-prompt').value=(b&&b.notePrompt)||'';
   document.getElementById('rt-b-role').value=(b&&b.role)||'';
   rtDraftDays=b?b.days:'1111111';
   rtRenderDayPills();rtSyncEditorFields();
@@ -1766,9 +1805,11 @@ document.getElementById('rt-b-save').addEventListener('click',()=>{
   const type=document.getElementById('rt-b-type').value;
   const groupId=document.getElementById('rt-b-group').value;
   const raw=document.getElementById('rt-b-target').value.trim();
-  let target=null;
+  let target=null,perWeek=null;
   if(type==='time'&&raw)target=raw;
   if(type==='duration'&&raw)target=parseInt(raw)||null;
+  if(type==='workout')perWeek=Math.max(1,parseInt(raw)||3);
+  const notePrompt=type==='note'?(document.getElementById('rt-b-prompt').value.trim()||'What did you read or listen to?'):'';
   const role=type==='time'?(document.getElementById('rt-b-role').value||null):null;
   const days=rtDraftDays.indexOf('1')<0?'1111111':rtDraftDays;
   if(role)rtState.blocks.forEach(b=>{if(b.id!==rtEditingBlockId&&b.role===role)b.role=null});
@@ -1776,10 +1817,10 @@ document.getElementById('rt-b-save').addEventListener('click',()=>{
   if(rtEditingBlockId){
     const b=rtState.blocks.find(x=>x.id===rtEditingBlockId);
     const moved=b.groupId!==groupId;
-    Object.assign(b,{name,type,groupId,target,role,days});
+    Object.assign(b,{name,type,groupId,target,role,days,perWeek,notePrompt});
     if(moved){rtMoveToGroupEnd(b.id,groupId);rtBlockOverlay.classList.remove('open');return;}
   }else{
-    const nb={id:uid(),name,type,groupId,target,role,days,paused:false,since:todayStr()};
+    const nb={id:uid(),name,type,groupId,target,role,days,perWeek,notePrompt,paused:false,since:todayStr()};
     let last=-1;rtState.blocks.forEach((x,i)=>{if(x.groupId===groupId)last=i});
     rtState.blocks.splice(last+1,0,nb);
   }
@@ -1810,6 +1851,13 @@ function rtBuckets(mode){
   return out;
 }
 function rtRate(block,dates){
+  if(block.type==='workout'){
+    if(block.paused||!dates.length)return {v:null,d:0,t:0};
+    const sessions=dates.filter(dt=>workoutNameOn(dt)).length;
+    const expected=(block.perWeek||3)*dates.length/7;
+    if(expected<=0)return {v:null,d:0,t:0};
+    return {v:Math.min(1,sessions/expected),d:sessions,t:Math.max(1,Math.round(expected))};
+  }
   let d=0,t=0;
   dates.forEach(dt=>{const s=rtStatus(block,dt);if(s==='done'){d++;t++}else if(s==='missed'){t++}});
   return t?{v:d/t,d,t}:{v:null,d:0,t:0};
@@ -1857,7 +1905,7 @@ function rtRenderStats(){
   });
   total.style.paddingBottom='6px';total.style.borderBottom='0.5px solid var(--bd)';total.style.marginBottom='8px';
   host.appendChild(total);
-  blocks.forEach(b=>host.appendChild(mkRow(b.name,false,bk=>rtRate(b,bk.dates))));
+  blocks.forEach(b=>host.appendChild(mkRow(b.name+(b.type==='workout'?'  ('+(b.perWeek||3)+'×/wk)':''),false,bk=>rtRate(b,bk.dates))));
   const axis=document.createElement('div');axis.className='rt-matrix';axis.style.gridTemplateColumns=cols;axis.style.marginTop='4px';
   axis.appendChild(document.createElement('span'));
   buckets.forEach((bk,i)=>{
@@ -1869,7 +1917,7 @@ function rtRenderStats(){
   /* summary metrics */
   const dates=[].concat(...buckets.map(b=>b.dates));
   let done=0,tot=0;
-  blocks.forEach(b=>dates.forEach(d=>{const s=rtStatus(b,d);if(s==='done'){done++;tot++}else if(s==='missed'){tot++}}));
+  blocks.forEach(b=>{const r=rtRate(b,dates);done+=r.d;tot+=r.t;});
   const mw=document.getElementById('rt-stat-metrics');mw.innerHTML='';
   mw.appendChild(rtMetric('Overall',tot?Math.round(done/tot*100)+'%':'—'));
   const sleeps=dates.map(rtSleepFor).filter(v=>v!==null);
