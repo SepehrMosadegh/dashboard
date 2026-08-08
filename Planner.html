@@ -1854,6 +1854,13 @@ function rtRate(block,dates){
   if(block.type==='workout'){
     if(block.paused||!dates.length)return {v:null,d:0,t:0};
     const sessions=dates.filter(dt=>workoutNameOn(dt)).length;
+    /* a single day can't be judged against a *weekly* target — that would
+       dock every rest day even when the week is exactly on pace. Only
+       score against the weekly target once the bucket spans close to a
+       week or more; a lone day just reports whether it had a session. */
+    if(dates.length<4){
+      return sessions>0 ? {v:1,d:1,t:1} : {v:null,d:0,t:0};
+    }
     const expected=(block.perWeek||3)*dates.length/7;
     if(expected<=0)return {v:null,d:0,t:0};
     return {v:Math.min(1,sessions/expected),d:sessions,t:Math.max(1,Math.round(expected))};
