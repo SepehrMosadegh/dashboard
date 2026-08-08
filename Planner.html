@@ -285,9 +285,6 @@ button:disabled:hover{background:var(--s1)}
 .rt-axis{font-size:9px;color:var(--tm);text-align:center;overflow:hidden;white-space:nowrap}
 .rt-scale{display:flex;align-items:center;gap:7px;margin-top:14px;font-size:11px;color:var(--tm);flex-wrap:wrap}
 .rt-swatch{width:22px;height:11px;border-radius:2px;background:var(--ac)}
-.pr-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.pr-row span{font-size:11px;color:var(--tm);width:34px;flex-shrink:0}
-.pr-row input{flex:1;min-height:30px}
 
 @media(max-width:900px){
   .pillars-grid{grid-auto-flow:row;grid-auto-columns:unset;grid-template-columns:1fr}
@@ -463,11 +460,6 @@ button:disabled:hover{background:var(--s1)}
         <option value="wake">Wake time</option>
         <option value="bed">Bed time</option>
       </select></div>
-    </div>
-    <div class="field" id="rt-b-prompts-wrap" style="display:none">
-      <label>Daily prompts</label>
-      <div id="rt-b-prompts"></div>
-      <div class="hint">Each day shows its own prompt. Leave a day blank to reuse Sunday's.</div>
     </div>
     <div class="field">
       <label>Days</label>
@@ -966,11 +958,402 @@ function workoutNameOn(date){
 </script>
 <script>
 /* ===================== ROUTINE ===================== */
+const JOURNAL_PROMPTS=[
+/* Jan */ [
+  'What are your goals for this year?',
+  'How do you want to feel this year?',
+  'Write about a habit you want to start.',
+  'What is your biggest dream this year?',
+  'How can you step out of your comfort zone?',
+  'What does success mean to you?',
+  'Write about something new you want to learn.',
+  'What makes you excited about this year?',
+  'What do you want to let go of from last year?',
+  'How can you show kindness to yourself?',
+  'Describe your ideal morning routine.',
+  'What motivates you to keep going?',
+  'Write about a personal goal that matters.',
+  'What are three things you’re grateful for?',
+  'What would you change about your lifestyle?',
+  'What is your top priority this year?',
+  'How do you overcome fear?',
+  'Write about your favorite winter memory.',
+  'What makes you feel inspired?',
+  'What are your self-care plans this year?',
+  'Describe your dream career.',
+  'What skills do you want to improve?',
+  'Write about a time you felt proud.',
+  'What challenges are you facing now?',
+  'How do you handle failure?',
+  'What habits keep you productive?',
+  'Write about a recent achievement.',
+  'What does a fulfilling life look like?',
+  'How do you want to be remembered?',
+  'Write about your favorite way to relax.',
+  'What is your focus for next month?'
+],
+/* Feb */ [
+  'What do you love about yourself?',
+  'Write about someone who inspires you.',
+  'How do you show love to others?',
+  'What does self-love look like to you?',
+  'Describe a happy moment this week.',
+  'What are three things you’re grateful for?',
+  'How can you improve relationships?',
+  'What makes you feel loved?',
+  'Write about a friend who impacted your life.',
+  'What does unconditional love mean?',
+  'How can you support your loved ones?',
+  'What makes you feel connected to others?',
+  'Write a letter to someone you admire.',
+  'What do you appreciate about your family?',
+  'Describe a time you felt truly loved.',
+  'What does it mean to be a good friend?',
+  'How can you practice more kindness?',
+  'Write about a positive quality in yourself.',
+  'What do you love about your routine?',
+  'What are three things that bring you joy?',
+  'Write about a memory with a loved one.',
+  'How do you show yourself appreciation?',
+  'What’s something you love doing for fun?',
+  'Describe a small act of kindness today.',
+  'What do you love doing with friends?',
+  'Write about someone who betters your life.',
+  'How can you spread more positivity?',
+  'What’s a meaningful connection you’ve made?'
+],
+/* Mar */ [
+  'What are your goals this month?',
+  'How do you handle new beginnings?',
+  'Write about a time you felt alive.',
+  'What changes excite you this year?',
+  'How can you bring more joy into life?',
+  'What is something new you want to try?',
+  'Write about a place you’d love to visit.',
+  'What steps can you take toward dreams?',
+  'Describe a challenge you’ve overcome.',
+  'What makes you feel strong?',
+  'How do you practice courage?',
+  'Write about a favorite childhood memory.',
+  'What are three things you’re grateful for?',
+  'How do you adapt to changes in life?',
+  'What are you looking forward to in spring?',
+  'Write about a positive habit to build.',
+  'What makes you feel free?',
+  'Describe your ideal weekend.',
+  'How do you stay motivated in hard times?',
+  'Write about a lesson you learned.',
+  'What is your favorite thing about spring?',
+  'How can you nurture growth this month?',
+  'Write about a fear you overcame.',
+  'What makes you feel connected to yourself?',
+  'How do you define personal growth?',
+  'Write about something exciting you now.',
+  'What is a small step for a big goal?',
+  'How can you embrace change easily?',
+  'What are three things that make you grateful?',
+  'Write about your biggest dream.',
+  'What is your focus for the next month?'
+],
+/* Apr */ [
+  'What are your goals for this month?',
+  'How do you embrace new opportunities?',
+  'Write about a time you left comfort.',
+  'What does growth mean to you?',
+  'What do you love about spring?',
+  'Describe a recent happy moment.',
+  'How can you add more positivity?',
+  'What habits do you want to improve?',
+  'Write about something you’re proud of.',
+  'What do you need to let go of to grow?',
+  'How can you challenge yourself?',
+  'Write about a goal you’re working on.',
+  'What are three things you’re grateful for?',
+  'How do you practice self-care?',
+  'Write about someone who inspires you.',
+  'What is your favorite outdoor activity?',
+  'How do you handle setbacks?',
+  'What are your strengths?',
+  'Write about something exciting you now.',
+  'What new skills do you want to learn?',
+  'How do you keep yourself motivated?',
+  'Write about your favorite spring activity.',
+  'What makes you feel refreshed?',
+  'How do you stay focused on goals?',
+  'Write about a challenge you overcame.',
+  'What makes you feel fulfilled?',
+  'How can you make more time for yourself?',
+  'Write about a dream for your future.',
+  'What makes you feel at peace?',
+  'Reflect on this month. What went well?'
+],
+/* May */ [
+  'What are your goals for this month?',
+  'How do you want to grow this month?',
+  'Write about something you want to change.',
+  'What does personal growth mean to you?',
+  'Describe a favorite memory from spring.',
+  'What are three things you’re grateful for today?',
+  'How do you handle challenges?',
+  'Write about a positive change you’ve made.',
+  'What are your priorities this month?',
+  'How do you handle stress positively?',
+  'What motivates you to grow?',
+  'Write about someone who supports your growth.',
+  'How do you define success?',
+  'What is one goal you want to achieve?',
+  'Write about a time you felt empowered.',
+  'What habits help you stay focused?',
+  'Describe your perfect day.',
+  'What does happiness look like to you?',
+  'How do you nurture mental health?',
+  'Write about something that brings you peace.',
+  'What steps are you taking to reach goals?',
+  'How can you support others’ growth?',
+  'Write about a recent accomplishment.',
+  'What are your favorite self-care practices?',
+  'How do you create balance in life?',
+  'Write about your biggest dream.',
+  'What makes you feel grateful today?',
+  'How do you celebrate small wins?',
+  'What makes you feel most alive?',
+  'Reflect on this month. What have you learned?',
+  'What is your focus for next month?'
+],
+/* Jun */ [
+  'What are your goals for this month?',
+  'How do you define success for yourself?',
+  'Write about something that makes you happy.',
+  'What is your favorite summer activity?',
+  'Describe a challenge you want to tackle.',
+  'What are three things you’re grateful for today?',
+  'Write about a recent happy memory.',
+  'What are your priorities this summer?',
+  'How do you stay focused on what matters?',
+  'Write about something you love about yourself.',
+  'How do you handle change?',
+  'What’s a skill you want to develop?',
+  'Describe a moment that brought you joy.',
+  'What are your biggest strengths?',
+  'How do you practice patience?',
+  'Write about a favorite summer activity.',
+  'What makes you feel most fulfilled?',
+  'How do you care for mental health?',
+  'Write about your hopes for the year.',
+  'What makes you feel at peace?',
+  'How do you handle difficult situations?',
+  'Write about something that inspires you.',
+  'How do you celebrate your progress?',
+  'What brings you comfort?',
+  'Write about your favorite summer memory.',
+  'What do you love most about yourself?',
+  'How do you want to grow this month?',
+  'Write about a dream for the future.',
+  'What makes you feel proud of yourself?',
+  'Reflect on this month. What went well?'
+],
+/* Jul */ [
+  'What are your goals for this month?',
+  'How do you handle stress?',
+  'Write about a favorite summer memory.',
+  'What is your favorite thing about summer?',
+  'Describe something you want to change in life.',
+  'What are three things you’re grateful for today?',
+  'How can you create more joy this month?',
+  'Write about a recent challenge you overcame.',
+  'What does relaxation look like for you?',
+  'How do you handle stress in positive ways?',
+  'How do you practice gratitude daily?',
+  'Write about a goal you are working towards.',
+  'What motivates you to keep moving forward?',
+  'Describe a perfect summer day.',
+  'What is something new you want to learn?',
+  'How do you practice self-care in busy times?',
+  'Write about a person who inspires you.',
+  'What are your current priorities?',
+  'How do you handle challenges?',
+  'Write about something that makes you hopeful.',
+  'What are three things you love about yourself?',
+  'How can you improve your personal growth?',
+  'Write about a recent accomplishment.',
+  'What do you need to let go of this month?',
+  'How can you practice more kindness?',
+  'Describe your ideal summer vacation.',
+  'What makes you feel most alive?',
+  'Write about your biggest dream for the future.',
+  'How do you stay motivated during tough times?',
+  'What brings you peace?',
+  'Reflect on this month. What went well?'
+],
+/* Aug */ [
+  'What are your goals for this month?',
+  'How do you embrace change?',
+  'Write about a favorite childhood summer memory.',
+  'What is something new you want to try?',
+  'How do you want to grow by year’s end?',
+  'What are three things you’re grateful for today?',
+  'Write about a recent joyful experience.',
+  'How do you stay positive in tough times?',
+  'What’s your favorite way to spend time with loved ones?',
+  'Write about a lesson you learned recently.',
+  'How can you be kinder to yourself?',
+  'Describe your ideal relaxing day.',
+  'What are your priorities this month?',
+  'How do you manage stress?',
+  'Write about something exciting you now.',
+  'What are your favorite summer activities?',
+  'How do you define success?',
+  'Write about a time you felt at peace.',
+  'What makes you feel fulfilled?',
+  'How can you support someone this month?',
+  'Write about a goal you’ve accomplished.',
+  'What does happiness mean to you?',
+  'How do you handle setbacks?',
+  'Write about a dream you have.',
+  'What are your favorite self-care practices?',
+  'How can you bring more joy into life?',
+  'Write about a fear you want to overcome.',
+  'What makes you feel proud of yourself?',
+  'How do you stay focused on your goals?',
+  'Reflect on this month. What did you learn?',
+  'What is your focus for next month?'
+],
+/* Sep */ [
+  'What are your goals for this month?',
+  'How do you feel about the season change?',
+  'Write about a challenge you overcame.',
+  'What are three things you’re grateful for today?',
+  'How do you want to finish the year strong?',
+  'Describe a perfect autumn day.',
+  'What lessons have you learned this year?',
+  'How do you handle changes in routine?',
+  'Write about a favorite autumn memory.',
+  'What makes you excited about the future?',
+  'How do you define personal growth?',
+  'Write about a recent happy moment.',
+  'What are your priorities this month?',
+  'How do you balance work and rest?',
+  'Write about a person who impacted your life.',
+  'What is your favorite thing about autumn?',
+  'How do you practice gratitude?',
+  'Write about something that brings you peace.',
+  'What does a fulfilling life look like?',
+  'How do you practice mindfulness?',
+  'Write about a fear you want to let go of.',
+  'What habits help you stay productive?',
+  'How do you nurture your personal growth?',
+  'Write about something that makes you proud.',
+  'What are your favorite autumn activities?',
+  'How do you handle stress positively?',
+  'Write about a book or movie that inspired you.',
+  'What are your current goals?',
+  'How do you stay motivated?',
+  'Reflect on this month. What went well?'
+],
+/* Oct */ [
+  'What do you love about autumn?',
+  'How can you embrace change this season?',
+  'Write about a favorite Halloween memory.',
+  'What fears do you want to let go of?',
+  'Describe the coziest place you’ve been.',
+  'What does comfort mean to you?',
+  'What are your goals for the rest of the year?',
+  'How can you be kinder to yourself?',
+  'Write about a recent moment of joy.',
+  'What makes you feel connected to nature?',
+  'List three things you are grateful for.',
+  'What are you proud of this month?',
+  'Write about a time you overcame fear.',
+  'What is your favorite autumn food?',
+  'How do you handle challenges?',
+  'Describe your perfect autumn day.',
+  'What are your current priorities?',
+  'What traditions do you look forward to?',
+  'How do you express creativity?',
+  'What changes have you noticed in yourself?',
+  'Write about something you want to learn.',
+  'What brings you peace?',
+  'How do you celebrate small wins?',
+  'What can you do to improve your wellbeing?',
+  'Describe a beautiful fall scene.',
+  'Write a letter to your future self.',
+  'What challenge taught you something new?',
+  'How do you balance work and rest?',
+  'What is your favorite spooky story?',
+  'How can you bring more joy into daily life?',
+  'Write about a Halloween memory.'
+],
+/* Nov */ [
+  'What are three things you’re thankful for?',
+  'Describe your ideal cozy evening.',
+  'How can you practice gratitude daily?',
+  'Write about a time someone was kind to you.',
+  'What do you love about November?',
+  'What are your biggest lessons this year?',
+  'How do you want to end the year strong?',
+  'What makes you feel at home?',
+  'Write about a challenge you’ve overcome.',
+  'What is your favorite way to relax?',
+  'Who are you grateful for and why?',
+  'What traditions connect you to family?',
+  'Describe a moment of stillness.',
+  'What goals do you have for the months ahead?',
+  'How can you be a better friend to yourself?',
+  'What do you love about where you live?',
+  'Write about a personal strength you have.',
+  'What small moments make life meaningful?',
+  'How do you handle stress in positive ways?',
+  'Write about a book or movie that inspired you.',
+  'What does giving mean to you?',
+  'What steps can you take to improve yourself?',
+  'How do you practice self-care?',
+  'What makes you feel loved?',
+  'Write about a happy childhood memory.',
+  'What excites you about the future?',
+  'How can you support those around you?',
+  'Write about a place you want to visit.',
+  'What does gratitude feel like to you?',
+  'Reflect on this month. What are you most proud of?'
+],
+/* Dec */ [
+  'What are your favorite holiday memories?',
+  'What are three things you’re grateful for?',
+  'How can you give back this month?',
+  'What lessons have you learned this year?',
+  'Write about a comforting holiday tradition.',
+  'What are your biggest achievements this year?',
+  'Describe a perfect winter day.',
+  'What are your hopes for next year?',
+  'What brings you peace during busy times?',
+  'How do you want to grow next year?',
+  'Write about a gift that meant a lot to you.',
+  'What is your favorite way to spend time with loved ones?',
+  'How do you stay positive during winter?',
+  'What goals are you setting for next year?',
+  'Describe a joyful moment from this year.',
+  'How can you care for yourself better next year?',
+  'Write about your favorite winter activity.',
+  'What are three things you’re proud of this year?',
+  'What does “home” mean to you?',
+  'How do you want to spend the last days of the year?',
+  'What habits do you want to leave behind?',
+  'Write about a person who impacted you this year.',
+  'What makes this time of year special?',
+  'How can you make time for what matters?',
+  'What was the best book or movie this year?',
+  'Reflect on your happiest moment this year.',
+  'What one word describes this year?',
+  'Write about something that challenged you this year.',
+  'How do you plan to celebrate New Year’s Eve?',
+  'What are three goals for next year?',
+  'Reflect on this year. How have you grown?'
+]
+];
 const RT_KEY='routineDashboardData_v1';
 const RT_DOW=['S','M','T','W','T','F','S'];
 const RT_DOW3=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let rtDate=todayStr(), rtSub='today', rtEditMode=false, rtGran='weekly';
-let rtEditingBlockId=null, rtDraftDays='1111111', rtDraftPrompts=['','','','','','',''];
+let rtEditingBlockId=null, rtDraftDays='1111111';
 
 function rtSeedState(){
   const g=n=>({id:uid(),name:n});
@@ -989,10 +1372,7 @@ function rtNormalize(d){
     if(b.link==='workout')b.type='workout';   /* migrate old link flag onto type */
     if(b.target===undefined)b.target=null;
     if(b.role===undefined)b.role=null;
-    if(!Array.isArray(b.prompts)||b.prompts.length!==7){
-      b.prompts=['','','','','','',''];
-      if(typeof b.notePrompt==='string'&&b.notePrompt) b.prompts[0]=b.notePrompt;
-    }
+    delete b.prompts; delete b.notePrompt;   /* prompts now come from the calendar */
     if(b.type==='note')b.type='journal';
     if(!gids.has(b.groupId))b.groupId=d.groups[0].id;
     if(typeof b.since!=='string'){
@@ -1074,8 +1454,9 @@ function rtSleepFor(date){
   return (dur>0&&dur<=16*60)?dur:null;
 }
 function rtPromptFor(b,date){
-  const p=b.prompts||[];
-  return (p[rtDow(date)]||'').trim() || (p[0]||'').trim();
+  const d=new Date(date+'T00:00:00');
+  const month=JOURNAL_PROMPTS[d.getMonth()]||[];
+  return month[d.getDate()-1]||'';
 }
 
 /* ---------- reorder ---------- */
@@ -1331,13 +1712,11 @@ function rtSyncEditorFields(){
   const tw=document.getElementById('rt-b-target-wrap');
   const rw=document.getElementById('rt-b-role-wrap');
   const trw=document.getElementById('rt-b-tr-wrap');
-  const pw=document.getElementById('rt-b-prompts-wrap');
   const tl=document.getElementById('rt-b-target-label');
   const ti=document.getElementById('rt-b-target');
   if(type==='time'){tw.style.display='';rw.style.display='';trw.style.display='';tl.textContent='Target time (HH:MM)';ti.placeholder='06:30';}
   else if(type==='duration'){tw.style.display='';rw.style.display='none';trw.style.display='';tl.textContent='Target minutes';ti.placeholder='20';}
   else{trw.style.display='none';}
-  pw.style.display = type==='journal'?'':'none';
 }
 document.getElementById('rt-b-type').addEventListener('change',rtSyncEditorFields);
 function rtRenderDayPills(){
@@ -1349,17 +1728,6 @@ function rtRenderDayPills(){
       const a=rtDraftDays.split('');a[i]=a[i]==='1'?'0':'1';rtDraftDays=a.join('');rtRenderDayPills();
     });
     host.appendChild(b);
-  });
-}
-function rtRenderPrompts(){
-  const host=document.getElementById('rt-b-prompts');host.innerHTML='';
-  RT_DOW3.forEach((l,i)=>{
-    const row=document.createElement('div');row.className='pr-row';
-    const s=document.createElement('span');s.textContent=l;
-    const inp=document.createElement('input');inp.type='text';inp.value=rtDraftPrompts[i]||'';
-    inp.placeholder = i===0?'What are you grateful for?':'(same as Sunday if blank)';
-    inp.addEventListener('input',()=>{rtDraftPrompts[i]=inp.value});
-    row.append(s,inp);host.appendChild(row);
   });
 }
 function rtOpenBlockEditor(blockId,groupId){
@@ -1374,8 +1742,7 @@ function rtOpenBlockEditor(blockId,groupId){
   document.getElementById('rt-b-target').value=(b&&b.target!==null&&b.target!==undefined)?b.target:'';
   document.getElementById('rt-b-role').value=(b&&b.role)||'';
   rtDraftDays=b?b.days:'1111111';
-  rtDraftPrompts=b&&Array.isArray(b.prompts)?b.prompts.slice():['','','','','','',''];
-  rtRenderDayPills();rtRenderPrompts();rtSyncEditorFields();
+  rtRenderDayPills();rtSyncEditorFields();
   document.getElementById('rt-b-delete').style.display=b?'':'none';
   const pb=document.getElementById('rt-b-pause');
   pb.style.display=b?'':'none';
@@ -1403,17 +1770,16 @@ document.getElementById('rt-b-save').addEventListener('click',()=>{
   if(type==='time'&&raw)target=raw;
   if(type==='duration'&&raw)target=parseInt(raw)||null;
   const role=type==='time'?(document.getElementById('rt-b-role').value||null):null;
-  const prompts=type==='journal'?rtDraftPrompts.slice():['','','','','','',''];
   const days=rtDraftDays.indexOf('1')<0?'1111111':rtDraftDays;
   if(role)rtState.blocks.forEach(b=>{if(b.id!==rtEditingBlockId&&b.role===role)b.role=null});
   if(type==='workout')rtState.blocks.forEach(b=>{if(b.id!==rtEditingBlockId&&b.type==='workout')b.type='check'});
   if(rtEditingBlockId){
     const b=rtState.blocks.find(x=>x.id===rtEditingBlockId);
     const moved=b.groupId!==groupId;
-    Object.assign(b,{name,type,groupId,target,role,prompts,days});
+    Object.assign(b,{name,type,groupId,target,role,days});
     if(moved){rtMoveToGroupEnd(b.id,groupId);rtBlockOverlay.classList.remove('open');return;}
   }else{
-    const nb={id:uid(),name,type,groupId,target,role,prompts,days,paused:false,since:todayStr()};
+    const nb={id:uid(),name,type,groupId,target,role,days,paused:false,since:todayStr()};
     let last=-1;rtState.blocks.forEach((x,i)=>{if(x.groupId===groupId)last=i});
     rtState.blocks.splice(last+1,0,nb);
   }
