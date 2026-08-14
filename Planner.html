@@ -65,19 +65,11 @@ button:disabled:hover{background:var(--s1)}
 .stat-num{font-size:17px;font-weight:500;line-height:1.2}
 .stat-label{font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
 .todo-section{background:var(--s1);border:0.5px solid var(--bd);border-radius:12px;padding:1.1rem 1.4rem}
-/* --- deadline strip --- */
-.dl-strip{margin-bottom:.85rem}
-.dl-strip-list{background:var(--s1);border:0.5px solid var(--bd);border-radius:12px;padding:.5rem .9rem}
-.dl-row{display:flex;align-items:center;gap:9px;padding:6px 2px;border-bottom:0.5px solid var(--bd);font-size:12px}
-.dl-row:last-child{border-bottom:none}
-.dl-when{font-size:11px;font-weight:500;width:88px;flex-shrink:0}
-.dl-when.ov{color:#A32D2D}
-.dl-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dl-pull{font-size:11px;padding:3px 9px;flex-shrink:0}
-/* --- week header --- */
-.week-hdr-row{display:flex;align-items:center;gap:8px;margin-bottom:.6rem}
+/* --- week header + nav --- */
+.week-hdr-row{display:flex;align-items:center;gap:8px;margin-bottom:.6rem;flex-wrap:wrap}
 .week-hdr-row .section-hdr{margin-bottom:0}
 .week-hdr-row .spacer{flex:1}
+#wk-nav .lbl{min-width:132px}
 /* --- slot meter --- */
 .slot-meter{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:.85rem;padding-bottom:.75rem;border-bottom:0.5px solid var(--bd)}
 .slot-pillar{display:flex;flex-direction:column;gap:3px;min-width:110px;flex:1}
@@ -86,9 +78,11 @@ button:disabled:hover{background:var(--s1)}
 .slot-track{height:6px;background:var(--s0);border-radius:3px;overflow:hidden}
 .slot-fill{height:100%;border-radius:3px}
 .slot-fill.over{background:#E24B4A!important}
-/* --- must flag on week rows --- */
+/* --- must flag + done state on week rows --- */
 .must-flag{color:#A32D2D;font-size:13px;flex-shrink:0}
 .todo-item .must-flag{cursor:default}
+.todo-item.wk-done{opacity:.55}
+.todo-item.wk-done .todo-label{text-decoration:line-through}
 .recur-tag{font-size:10px;color:var(--tm);display:flex;align-items:center;gap:3px;flex-shrink:0}
 .wk-remove{background:none;border:none;color:var(--tm);cursor:pointer;padding:2px;flex-shrink:0}
 .wk-remove:hover{color:#A32D2D;background:none}
@@ -107,7 +101,6 @@ button:disabled:hover{background:var(--s1)}
 .pull-row:hover{background:var(--s2)}
 .pull-name{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pull-dl{font-size:11px;color:var(--tm);flex-shrink:0}
-.pull-dl.suggested{color:#854F0B;font-weight:500}
 .pull-add{background:none;border:none;color:var(--ac);cursor:pointer;font-size:18px;padding:0 2px;flex-shrink:0;line-height:1}
 .pull-add:hover{background:none}
 /* --- settings modal reuse --- */
@@ -461,14 +454,15 @@ button:disabled:hover{background:var(--s1)}
       <div class="stat-card"><div class="stat-num" id="s-projects">—</div><div class="stat-label">Projects</div></div>
       <div class="stat-card"><div class="stat-num" id="s-tasks">—</div><div class="stat-label">Tasks</div></div>
     </div>
-    <div class="dl-strip" id="dl-strip" style="display:none">
-      <div class="section-hdr"><i class="ti ti-flag-3" style="font-size:13px"></i> Deadlines</div>
-      <div class="dl-strip-list" id="dl-strip-list"></div>
-    </div>
     <div class="todo-section" style="margin-bottom:.85rem">
       <div class="week-hdr-row">
-        <div class="section-hdr"><i class="ti ti-calendar-week" style="font-size:13px"></i> This Week</div>
+        <div class="section-hdr"><i class="ti ti-calendar-week" style="font-size:13px"></i> <span id="wk-title">This Week</span></div>
         <div class="spacer"></div>
+        <div class="rt-datenav" id="wk-nav">
+          <button class="icon-btn" id="wk-prev"><i class="ti ti-chevron-left" style="font-size:14px"></i></button>
+          <span class="lbl" id="wk-label"></span>
+          <button class="icon-btn" id="wk-next"><i class="ti ti-chevron-right" style="font-size:14px"></i></button>
+        </div>
         <button class="pill" id="pull-btn"><i class="ti ti-plus" style="font-size:12px;vertical-align:-2px;margin-right:3px"></i>Pull tasks</button>
         <button class="icon-btn" id="wk-settings-btn" title="Slot budgets"><i class="ti ti-adjustments" style="font-size:14px"></i></button>
       </div>
@@ -516,11 +510,6 @@ button:disabled:hover{background:var(--s1)}
       <label>Weekly slots per pillar</label>
       <div id="wk-targets"></div>
       <div class="hint">A slot ≈ one focused session. Most tasks are 1 slot.</div>
-    </div>
-    <div class="field">
-      <label>Deadline window (days)</label>
-      <input type="number" id="wk-dlwindow" min="1" step="1" style="width:80px">
-      <div class="hint">How far ahead a real deadline shows in the strip above.</div>
     </div>
     <div class="modal-actions">
       <button id="wk-settings-cancel">Cancel</button>
@@ -939,8 +928,7 @@ function renderInsights(){
   const daysRemaining=Math.max(0,Math.round((new Date(plan.endDate+'T00:00:00')-new Date())/86400000));
   const weeks=Math.max(1,Math.round(daysRemaining/7));
   const pace=Math.ceil(Math.max(0,targ-logged)/weeks);
-  if(logged===0) motEl.textContent=`Your plan runs ${planDurationDays(plan)} days — hit Log on a card once you finish a session to start tracking.`;
-  else if(daysRemaining<=0) motEl.textContent='Your plan window has ended — nice work either way.';
+  if(daysRemaining<=0) motEl.textContent='Your plan window has ended — nice work either way.';
   else motEl.textContent=`${daysRemaining} days left — ${pace} session${pace===1?'':'s'}/week keeps you on pace for your goal.`;
   const months=planMonths(plan), prev=chartSelectedValue;
   const mv=m=>`__month__${m.year}-${pad2(m.month+1)}`;
@@ -1949,19 +1937,12 @@ function rtBuckets(mode){
 function rtRate(block,dates){
   if(block.type==='workout'){
     if(block.paused||!dates.length)return {v:null,d:0,t:0};
+    /* same measure as every other block type: of the days a plan covered,
+       what fraction did you actually log something on — no target weighting */
     const covered=dates.filter(dt=>workoutCoveredOn(dt)||workoutNameOn(dt));
     if(!covered.length)return {v:null,d:0,t:0};
     const sessions=covered.filter(dt=>workoutNameOn(dt)).length;
-    /* a single day can't be judged against a *weekly* target — that would
-       dock every rest day even when the week is exactly on pace. Only
-       score against the weekly target once the bucket spans close to a
-       week or more; a lone day just reports whether it had a session. */
-    if(dates.length<4){
-      return sessions>0 ? {v:1,d:1,t:1} : {v:null,d:0,t:0};
-    }
-    const expected=(block.perWeek||3)*covered.length/7;
-    if(expected<=0)return {v:null,d:0,t:0};
-    return {v:Math.min(1,sessions/expected),d:sessions,t:Math.max(1,Math.round(expected))};
+    return {v:sessions/covered.length,d:sessions,t:covered.length};
   }
   let d=0,t=0;
   dates.forEach(dt=>{const s=rtStatus(block,dt);if(s==='done'){d++;t++}else if(s==='missed'){t++}});
@@ -2025,8 +2006,6 @@ function rtRenderStats(){
   blocks.forEach(b=>{const r=rtRate(b,dates);done+=r.d;tot+=r.t;});
   const mw=document.getElementById('rt-stat-metrics');mw.innerHTML='';
   mw.appendChild(rtMetric('Overall',tot?Math.round(done/tot*100)+'%':'—'));
-  const sleeps=dates.map(rtSleepFor).filter(v=>v!==null);
-  mw.appendChild(rtMetric('Avg sleep',sleeps.length?rtFmtDur(sleeps.reduce((a,b)=>a+b,0)/sleeps.length):'—'));
   const wb=rtState.blocks.find(b=>b.role==='wake');
   let wl='Avg wake',wv='—';
   if(wb){
@@ -2108,13 +2087,21 @@ function piI(p){
   if(typeof i!=='number')i=(typeof p.ci==='number'?p.ci:(LEGACY[p.id]!==undefined?LEGACY[p.id]:0));
   return ICONS[i%ICONS.length].i;
 }
-const DEFAULT_SLOT_BUDGET=4, DEFAULT_DL_WINDOW=14;
-let PLANSETTINGS={dlWindow:DEFAULT_DL_WINDOW};
+const DEFAULT_SLOT_BUDGET=4;
+const EARLIEST='2000-01-01';   /* since-gate default for repeats that predate this field */
 function normalizeTask(t){
   if(typeof t.slots!=='number'||t.slots<=0)t.slots=1;
-  if(!t.repeat||typeof t.repeat!=='object'||typeof t.repeat.days!=='string'||t.repeat.days.length!==7)t.repeat=null;
+  if(!t.repeat||typeof t.repeat!=='object'||typeof t.repeat.days!=='string'||t.repeat.days.length!==7){
+    t.repeat=null;
+  }else if(typeof t.repeat.since!=='string'){
+    t.repeat.since=EARLIEST;   /* pre-existing repeat from before "since" existed: don't hide its history */
+  }
   if(!t.repeatLog||typeof t.repeatLog!=='object')t.repeatLog={};
-  if(typeof t.inWeek!=='boolean')t.inWeek=false;
+  /* migrate the old sticky boolean to a specific week, landing in the current week */
+  if(typeof t.weekOf!=='string'){
+    t.weekOf=(t.inWeek===true)?rtWeekOf(todayStr())[0]:null;
+  }
+  delete t.inWeek;
   if(typeof t.must!=='boolean')t.must=false;
   return t;
 }
@@ -2139,42 +2126,30 @@ function normalizePillars(ps){
   }
   return ps;
 }
-function pruneRepeatLogs(){
-  const lo=localDateStr(new Date(NOW.getTime()-9*864e5));
-  PILLARS.forEach(pl=>pl.projects.forEach(pr=>pr.tasks.forEach(t=>{
-    if(!t.repeatLog)return;
-    Object.keys(t.repeatLog).forEach(k=>{if(k<lo)delete t.repeatLog[k]});
-  })));
-}
+/* repeatLog doubles as a light weekly history now that past weeks are
+   browsable, so it's kept in full rather than pruned. Volume stays tiny —
+   a handful of recurring tasks x a few ticks a week. */
 function savePlanner(){
   try{
-    pruneRepeatLogs();
     localStorage.setItem(PL_KEY,JSON.stringify({
       bannerTitle:document.getElementById('brand-title').textContent,
-      pillars:PILLARS,planSettings:PLANSETTINGS,updatedAt:Date.now()
+      pillars:PILLARS,updatedAt:Date.now()
     }));
   }catch(e){}
   queueSave('planner');
 }
 const saveState=savePlanner;
-function normalizePlanSettings(s){
-  const ps=(s&&s.planSettings&&typeof s.planSettings==='object')?s.planSettings:{};
-  if(typeof ps.dlWindow!=='number'||ps.dlWindow<=0)ps.dlWindow=DEFAULT_DL_WINDOW;
-  PLANSETTINGS=ps;
-}
 function loadPlanner(){
   try{
-    const raw=localStorage.getItem(PL_KEY);if(!raw){normalizePlanSettings(null);return;}
+    const raw=localStorage.getItem(PL_KEY);if(!raw)return;
     const s=JSON.parse(raw);
     if(s.bannerTitle)document.getElementById('brand-title').textContent=s.bannerTitle;
     if(s.pillars)PILLARS=normalizePillars(s.pillars);
-    normalizePlanSettings(s);
-  }catch(e){normalizePlanSettings(null);}
+  }catch(e){}
 }
 registerSync('planner','planner',PL_KEY,d=>!!d.pillars,d=>{
   document.getElementById('brand-title').textContent=d.bannerTitle||'Dashboard';
   PILLARS=normalizePillars(d.pillars);
-  normalizePlanSettings(d);
   localStorage.setItem(PL_KEY,JSON.stringify(d));
   renderPlanner();
 });
@@ -2205,68 +2180,48 @@ function makeBannerEditable(id){
 }
 /* ===================== THIS WEEK ===================== */
 /* recurring occurrences are computed at render time from task.repeat + task.repeatLog,
-   never stored as separate objects, so nothing accumulates beyond the ticks themselves */
-function weekDates(){ return rtWeekOf(todayStr()); }
+   never stored as separate objects, so nothing accumulates beyond the ticks themselves.
+   WEEKVIEW is the Sunday of whichever week is currently being browsed — defaults to
+   the real current week but can be navigated forward/back independently of "today". */
+let WEEKVIEW=rtWeekOf(todayStr())[0];
+function currentWeekStart(){ return rtWeekOf(todayStr())[0]; }
+function weekLabel(startStr){
+  const dates=rtWeekOf(startStr);
+  const a=new Date(dates[0]+'T00:00:00'),b=new Date(dates[6]+'T00:00:00');
+  const fmt=dt=>dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  return fmt(a)+' – '+fmt(b);
+}
 function collectWeekItems(){
-  const out=[];
+  const out=[],dates=rtWeekOf(WEEKVIEW);
   PILLARS.forEach(pl=>pl.projects.forEach(proj=>proj.tasks.forEach(task=>{
-    if(task.done)return;
     if(task.repeat){
-      weekDates().forEach(ds=>{
+      dates.forEach(ds=>{
+        if(ds<task.repeat.since)return;
         if(task.repeat.days.charAt(new Date(ds+'T00:00:00').getDay())!=='1')return;
-        if(task.repeatLog[ds]==='done'||task.repeatLog[ds]==='skipped')return;
-        out.push({recur:true,task,proj,pillar:pl,rdate:ds});
+        const st=task.repeatLog[ds];
+        if(st==='skipped')return;   /* skipped occurrences don't clutter the week */
+        out.push({recur:true,task,proj,pillar:pl,rdate:ds,rdone:st==='done'});
       });
-    }else if(task.inWeek){
+    }else if(task.weekOf===WEEKVIEW){
       out.push({recur:false,task,proj,pillar:pl});
     }
   })));
   out.sort((a,b)=>{
     if(a.task.must!==b.task.must)return a.task.must?-1:1;
-    const ka=a.recur?a.rdate:(a.task.dl||'9999'),kb=b.recur?b.rdate:(b.task.dl||'9999');
-    if(ka!==kb)return ka<kb?-1:1;
+    const ka=a.recur?a.rdate:(a.task.order||0)+'',kb=b.recur?b.rdate:(b.task.order||0)+'';
+    if(a.recur||b.recur){if(ka!==kb)return ka<kb?-1:1;}
     return (a.task.order||0)-(b.task.order||0);
   });
   return out;
 }
+/* Completing a task doesn't shrink your committed slots for the week — the
+   meter tracks what you took on, not just what's left, so it counts done
+   items exactly like undone ones. */
 function slotUsage(){
   const out={};
   PILLARS.forEach(pl=>out[pl.id]={used:0,budget:pl.slotBudget});
   collectWeekItems().forEach(it=>{ if(out[it.pillar.id])out[it.pillar.id].used+=(it.task.slots||1); });
   return out;
-}
-function deadlineItems(){
-  const today=todayStr(),out=[];
-  PILLARS.forEach(pl=>pl.projects.forEach(proj=>proj.tasks.forEach(task=>{
-    if(task.done||!task.dl)return;
-    const n=daysFrom(parseDate(task.dl));
-    if(n===null||n>PLANSETTINGS.dlWindow)return;
-    out.push({task,proj,pillar:pl,days:n});
-  })));
-  out.sort((a,b)=>a.days-b.days);
-  return out;
-}
-function renderDeadlineStrip(){
-  const wrap=document.getElementById('dl-strip'),list=document.getElementById('dl-strip-list');
-  const items=deadlineItems();
-  if(!items.length){wrap.style.display='none';return}
-  wrap.style.display='';list.innerHTML='';
-  items.forEach(({task,proj,pillar,days})=>{
-    const c=piC(pillar);
-    const row=document.createElement('div');row.className='dl-row';
-    const when=document.createElement('span');when.className='dl-when'+(days<0?' ov':'');
-    when.textContent=days<0?Math.abs(days)+'d overdue':days===0?'Today':days===1?'Tomorrow':'In '+days+'d';
-    const nm=document.createElement('span');nm.className='dl-name';nm.textContent=task.t;nm.title=task.t;
-    const tag=document.createElement('span');tag.className='todo-tag';tag.style.cssText=`background:${c.dot};color:${c.txt}`;
-    tag.textContent=proj.name.length>18?proj.name.slice(0,16)+'…':proj.name;
-    row.append(when,nm,tag);
-    if(!task.inWeek){
-      const pull=document.createElement('button');pull.className='dl-pull';pull.textContent='Pull in';
-      pull.addEventListener('click',()=>{task.inWeek=true;savePlanner();renderPlanner()});
-      row.appendChild(pull);
-    }
-    list.appendChild(row);
-  });
 }
 function renderSlotMeter(){
   const host=document.getElementById('slot-meter');host.innerHTML='';
@@ -2282,52 +2237,55 @@ function renderSlotMeter(){
     track.appendChild(fill);cell.append(lbl,track);host.appendChild(cell);
   });
 }
+function renderWeekNav(){
+  const isCurrent=WEEKVIEW===currentWeekStart();
+  document.getElementById('wk-title').textContent=isCurrent?'This Week':'Week';
+  document.getElementById('wk-label').textContent=(isCurrent?'This week · ':'')+weekLabel(WEEKVIEW);
+}
+document.getElementById('wk-prev').addEventListener('click',()=>{WEEKVIEW=rtShift(WEEKVIEW,-7);renderPlanner()});
+document.getElementById('wk-next').addEventListener('click',()=>{WEEKVIEW=rtShift(WEEKVIEW,7);renderPlanner()});
 function buildTodo(){
+  renderWeekNav();
   const root=document.getElementById('todo-root');root.innerHTML='';
   const items=collectWeekItems();
-  if(!items.length){root.innerHTML='<div class="empty-hint">Nothing pulled into this week yet — use "Pull tasks" above, or set a task to repeat.</div>';return}
+  if(!items.length){root.innerHTML='<div class="empty-hint">Nothing in this week yet — use "Pull tasks" above, or set a task to repeat.</div>';return}
   items.forEach(item=>root.appendChild(item.recur?makeRecurRow(item):makeWeekRow(item)));
 }
 function makeWeekRow(item){
   const {task,proj,pillar}=item;
   const c=piC(pillar);
-  const row=document.createElement('div');row.className='todo-item';
+  const row=document.createElement('div');row.className='todo-item'+(task.done?' wk-done':'');
   row.style.setProperty('--pc',c.dot);row.style.setProperty('--pt',c.txt);
   if(task.must){const f=document.createElement('i');f.className='ti ti-flag-filled must-flag';f.title='Must this week';row.appendChild(f)}
-  const cb=document.createElement('input');cb.type='checkbox';cb.className='todo-cb';
-  cb.addEventListener('change',function(){if(!this.checked)return;task.done=true;renderPlanner();savePlanner()});
+  const cb=document.createElement('input');cb.type='checkbox';cb.className='todo-cb';cb.checked=!!task.done;
+  cb.addEventListener('change',function(){task.done=this.checked;savePlanner();renderPlanner()});
   const resort=()=>{renderPlanner();savePlanner()};
   const tlbl=makeTaskLabel(task,proj,resort);tlbl.classList.add('todo-label');
   const tags=document.createElement('div');tags.className='todo-tags';
   const prt=document.createElement('span');prt.className='todo-tag';prt.style.cssText=`background:${c.dot};color:${c.txt}`;
   prt.textContent=proj.name.length>22?proj.name.slice(0,20)+'…':proj.name;
   tags.append(prt);
-  if(task.dl){
-    const n=daysFrom(parseDate(task.dl));
-    const dl=document.createElement('span');dl.className='task-pill '+(n!==null&&n<0?'pill-do':'pill-df');
-    dl.textContent=n<0?Math.abs(n)+'d over':n===0?'today':n===1?'tmrw':fmtDL(task.dl);
-    tags.appendChild(dl);
-  }
   if(task.slots>1){const s=document.createElement('span');s.className='task-pill pill-slots';s.textContent=task.slots+' slots';tags.appendChild(s)}
   const rm=document.createElement('button');rm.className='wk-remove';rm.title='Remove from this week';
   rm.innerHTML='<i class="ti ti-x" style="font-size:13px"></i>';
-  rm.addEventListener('click',()=>{task.inWeek=false;savePlanner();renderPlanner()});
+  rm.addEventListener('click',()=>{task.weekOf=null;savePlanner();renderPlanner()});
   tags.appendChild(rm);
   row.append(cb,tlbl,tags);
   return row;
 }
 /* A recurring occurrence: ticking writes one key into repeatLog rather than
-   creating a task, so storage grows with work done, not with time elapsed. */
+   creating a task, so storage grows with work done, not with time elapsed.
+   The row stays in the list either way — checking it just marks that date done. */
 function makeRecurRow(item){
-  const {task,proj,pillar,rdate}=item;
+  const {task,proj,pillar,rdate,rdone}=item;
   const c=piC(pillar);
-  const row=document.createElement('div');row.className='todo-item recur-row';
+  const row=document.createElement('div');row.className='todo-item recur-row'+(rdone?' wk-done':'');
   row.style.setProperty('--pc',c.dot);row.style.setProperty('--pt',c.txt);
   if(task.must){const f=document.createElement('i');f.className='ti ti-flag-filled must-flag';f.title='Must this week';row.appendChild(f)}
-  const cb=document.createElement('input');cb.type='checkbox';cb.className='todo-cb';
+  const cb=document.createElement('input');cb.type='checkbox';cb.className='todo-cb';cb.checked=rdone;
   cb.addEventListener('change',function(){
-    if(!this.checked)return;
-    task.repeatLog[rdate]='done';savePlanner();renderPlanner();
+    if(this.checked)task.repeatLog[rdate]='done';else delete task.repeatLog[rdate];
+    savePlanner();renderPlanner();
   });
   const lbl=document.createElement('span');lbl.className='todo-label';lbl.textContent=task.t;
   const tags=document.createElement('div');tags.className='todo-tags';
@@ -2349,55 +2307,46 @@ function renderPullList(){
   const host=document.getElementById('pull-list');host.innerHTML='';
   const items=[];
   PILLARS.forEach(pl=>pl.projects.forEach(proj=>proj.tasks.forEach(task=>{
-    if(task.done||task.inWeek||task.repeat)return;
-    items.push({task,proj,pillar:pl,n:task.dl?daysFrom(parseDate(task.dl)):null});
+    if(task.done||task.weekOf||task.repeat)return;
+    items.push({task,proj,pillar:pl});
   })));
-  items.sort((a,b)=>{if(a.n===null&&b.n===null)return 0;if(a.n===null)return 1;if(b.n===null)return -1;return a.n-b.n});
-  if(!items.length){host.innerHTML='<div class="empty-hint">Nothing left to pull — everything active is already in this week, or repeats automatically.</div>';return}
-  items.forEach(({task,proj,pillar,n})=>{
+  if(!items.length){host.innerHTML='<div class="empty-hint">Nothing left to pull — everything active is already in a week, or repeats automatically.</div>';return}
+  items.forEach(({task,proj,pillar})=>{
     const c=piC(pillar);
     const row=document.createElement('div');row.className='pull-row';
     const nm=document.createElement('span');nm.className='pull-name';nm.textContent=task.t;
     const tag=document.createElement('span');tag.className='todo-tag';tag.style.cssText=`background:${c.dot};color:${c.txt}`;
     tag.textContent=proj.name.length>16?proj.name.slice(0,14)+'…':proj.name;
-    const dl=document.createElement('span');
-    dl.className='pull-dl'+(n!==null&&n<=PLANSETTINGS.dlWindow?' suggested':'');
-    dl.textContent=task.dl?fmtDL(task.dl):'';
     const add=document.createElement('button');add.className='pull-add';add.innerHTML='<i class="ti ti-plus" style="font-size:15px"></i>';
-    const pull=()=>{task.inWeek=true;savePlanner();renderPlanner();renderPullList()};
+    const pull=()=>{task.weekOf=WEEKVIEW;savePlanner();renderPlanner();renderPullList()};
     row.addEventListener('click',pull);
     add.addEventListener('click',e=>{e.stopPropagation();pull()});
-    row.append(nm,tag,dl,add);host.appendChild(row);
+    row.append(nm,tag,add);host.appendChild(row);
   });
 }
 document.getElementById('pull-btn').addEventListener('click',()=>{renderPullList();pullOverlay.classList.add('open')});
 document.getElementById('pull-close').addEventListener('click',()=>pullOverlay.classList.remove('open'));
 
-/* ---------- slot / deadline-window settings ---------- */
+/* ---------- slot budget settings ---------- */
 const wkSettingsOverlay=document.getElementById('wk-settings-overlay');
 let wkDraft=null;
 document.getElementById('wk-settings-btn').addEventListener('click',()=>{
-  wkDraft={targets:PILLARS.map(p=>p.slotBudget),dlWindow:PLANSETTINGS.dlWindow};
+  wkDraft={targets:PILLARS.map(p=>p.slotBudget)};
   const host=document.getElementById('wk-targets');host.innerHTML='';
   PILLARS.forEach((p,i)=>{
     const c=piC(p);
     const row=document.createElement('div');row.className='tgt-row';
-    const dot=document.createElement('span');dot.className='risk-pdot';dot.style.cssText='width:7px;height:7px;border-radius:50%;background:'+c.bar;
+    const dot=document.createElement('span');dot.style.cssText='width:7px;height:7px;border-radius:50%;background:'+c.bar+';flex-shrink:0';
     const s=document.createElement('span');s.textContent=p.title;
     const inp=document.createElement('input');inp.type='number';inp.min='0';inp.step='1';inp.value=p.slotBudget;
     inp.addEventListener('input',()=>{wkDraft.targets[i]=Math.max(0,parseInt(inp.value)||0)});
     row.append(dot,s,inp);host.appendChild(row);
   });
-  document.getElementById('wk-dlwindow').value=PLANSETTINGS.dlWindow;
   wkSettingsOverlay.classList.add('open');
-});
-document.getElementById('wk-dlwindow').addEventListener('input',function(){
-  if(wkDraft)wkDraft.dlWindow=Math.max(1,parseInt(this.value)||DEFAULT_DL_WINDOW);
 });
 document.getElementById('wk-settings-cancel').addEventListener('click',()=>wkSettingsOverlay.classList.remove('open'));
 document.getElementById('wk-settings-save').addEventListener('click',()=>{
   PILLARS.forEach((p,i)=>p.slotBudget=wkDraft.targets[i]);
-  PLANSETTINGS.dlWindow=wkDraft.dlWindow;
   savePlanner();wkSettingsOverlay.classList.remove('open');renderPlanner();
 });
 
@@ -2456,13 +2405,17 @@ function makePlanBtn(task,resortCb){
 
   const daysWrap=document.createElement('div');daysWrap.className='plan-days'+(task.repeat?' on':'');
   let draftDays=(task.repeat&&task.repeat.days)||'0000000';
+  const applyRepeat=()=>{
+    const since=(task.repeat&&task.repeat.since)||todayStr();   /* preserve history once a repeat has started */
+    task.repeat={days:draftDays,since};task.weekOf=null;
+  };
   RT_DOW.forEach((l,i)=>{
     const b=document.createElement('button');b.type='button';
     b.className='rt-daypill'+(draftDays.charAt(i)==='1'?' on':'');b.textContent=l;b.style.cssText='width:26px;height:26px;font-size:11px';
     b.addEventListener('click',()=>{
       const a=draftDays.split('');a[i]=a[i]==='1'?'0':'1';draftDays=a.join('');
       b.classList.toggle('on',a[i]==='1');
-      if(draftDays.indexOf('1')>=0){task.repeat={days:draftDays};task.inWeek=false;}
+      if(draftDays.indexOf('1')>=0)applyRepeat();
       savePlanner();resortCb();
     });
     daysWrap.appendChild(b);
@@ -2470,7 +2423,7 @@ function makePlanBtn(task,resortCb){
   repCb.addEventListener('change',()=>{
     if(repCb.checked){
       if(draftDays.indexOf('1')<0)draftDays='0100000';
-      task.repeat={days:draftDays};task.inWeek=false;
+      applyRepeat();
       daysWrap.classList.add('on');
       [...daysWrap.children].forEach((b,i)=>b.classList.toggle('on',draftDays.charAt(i)==='1'));
     }else{
@@ -2480,36 +2433,15 @@ function makePlanBtn(task,resortCb){
   });
 
   const wkRow=document.createElement('div');wkRow.className='plan-row';
-  const wkCb=document.createElement('input');wkCb.type='checkbox';wkCb.id='pw-'+idBase;wkCb.checked=!!task.inWeek;
+  const wkCb=document.createElement('input');wkCb.type='checkbox';wkCb.id='pw-'+idBase;wkCb.checked=task.weekOf===WEEKVIEW;
   const wkLbl=document.createElement('label');wkLbl.htmlFor=wkCb.id;wkLbl.textContent='In this week';
-  wkCb.addEventListener('change',()=>{task.inWeek=wkCb.checked;savePlanner();resortCb()});
+  wkCb.addEventListener('change',()=>{task.weekOf=wkCb.checked?WEEKVIEW:null;savePlanner();resortCb()});
   wkRow.append(wkCb,wkLbl);
-  const syncWkRow=()=>{wkRow.style.display=task.repeat?'none':'';};
+  const syncWkRow=()=>{wkRow.style.display=task.repeat?'none':'';wkCb.checked=task.weekOf===WEEKVIEW;};
   syncWkRow();
 
   pop.append(mustRow,repRow,daysWrap,wkRow);
   btn.onclick=e=>{e.stopPropagation();const was=pop.classList.contains('open');closeAll(null);if(!was){pop.classList.add('open');syncWkRow();refreshIcon()}};
-  wrap.append(btn,pop);return wrap;
-}
-function makeDlBtn(task,resortCb){
-  const wrap=document.createElement('div');wrap.className='dropdown-wrap';
-  const btn=document.createElement('button');
-  const refresh=()=>{
-    if(!task.dl){btn.className='task-pill pill-muted';btn.textContent='date';return}
-    const d=parseDate(task.dl),n=d?daysFrom(d):null;
-    btn.className='task-pill '+(n!==null&&n<0?'pill-do':'pill-df');btn.textContent=task.dl;
-  };
-  refresh();
-  const pop=document.createElement('div');pop.className='dl-popover';
-  const lbl=document.createElement('label');lbl.textContent='Task deadline';
-  const inp=document.createElement('input');inp.type='date';if(task.dl)inp.value=task.dl;
-  inp.onchange=()=>{task.dl=inp.value||null;refresh();pop.classList.remove('open');resortCb()};
-  const clr=document.createElement('button');clr.className='dl-clear';clr.textContent='Clear date';
-  clr.onclick=e=>{e.stopPropagation();task.dl=null;inp.value='';refresh();pop.classList.remove('open');resortCb()};
-  pop.append(lbl,inp,clr);
-  pop.addEventListener('click',e=>e.stopPropagation());
-  pop.addEventListener('mousedown',e=>e.stopPropagation());
-  btn.onclick=e=>{e.stopPropagation();const was=pop.classList.contains('open');closeAll(null);if(!was)pop.classList.add('open')};
   wrap.append(btn,pop);return wrap;
 }
 function makeTaskLabel(task,proj,resortCb){
@@ -2540,7 +2472,7 @@ function makeSubEl(task,proj,resortCb){
   cb.addEventListener('change',function(){task.done=this.checked;setTimeout(resortCb,180)});
   const lbl=makeTaskLabel(task,proj,resortCb);
   const right=document.createElement('div');right.className='task-right';
-  right.append(makePlanBtn(task,resortCb),makeSlotBtn(task,resortCb),makeDlBtn(task,resortCb));
+  right.append(makePlanBtn(task,resortCb),makeSlotBtn(task,resortCb));
   div.append(dh,cb,lbl,right);
   function finish(){
     const parent=div.parentNode;
@@ -2586,11 +2518,7 @@ function renderTasks(proj,subs,addBtn,donediv,metaEl){
   doneList.innerHTML='';
   donediv.classList.remove('vis');
   const resort=()=>{renderPlanner();savePlanner()};
-  const active=proj.tasks.filter(t=>!t.done).sort((a,b)=>{
-    const da=parseDate(a.dl),db=parseDate(b.dl);
-    if(da&&db){if(da-db!==0)return da-db;return (a.order||0)-(b.order||0)}
-    if(da)return -1;if(db)return 1;return (a.order||0)-(b.order||0);
-  });
+  const active=proj.tasks.filter(t=>!t.done).sort((a,b)=>(a.order||0)-(b.order||0));
   active.forEach(t=>subs.insertBefore(makeSubEl(t,proj,resort),donediv));
   const done=proj.tasks.filter(t=>t.done);
   if(done.length){donediv.classList.add('vis');donediv.querySelector('.done-lbl').textContent='Completed ('+done.length+')'}
@@ -2680,14 +2608,9 @@ function makePillarCard(pillar){
       this.replaceWith(inp);inp.focus();inp.select();
     });
     const pmeta=document.createElement('div');pmeta.className='proj-meta';pmeta.style.color=c.txt;
-    function fmtMY(s){const d=parseDate(s);return d?d.toLocaleDateString('en-CA',{month:'short',year:'numeric'}):s}
     function refreshMeta(){
       const rem=proj.tasks.filter(t=>!t.done).length;
-      const dls=proj.tasks.filter(t=>t.dl).map(t=>t.dl).sort();
-      let ds='';
-      if(dls.length){const a=fmtMY(dls[0]),b=fmtMY(dls[dls.length-1]);ds='  ·  '+(a===b?a:a+' – '+b)}
-      else if(proj.deadline)ds='  ·  '+fmtMY(proj.deadline);
-      pmeta.textContent=rem+' task'+(rem===1?'':'s')+ds;
+      pmeta.textContent=rem+' task'+(rem===1?'':'s');
     }
     refreshMeta();pmeta.refreshMeta=refreshMeta;
     pinfo.append(pname,pmeta);
@@ -2718,7 +2641,7 @@ function makePillarCard(pillar){
       let done=false;
       const commit=()=>{if(done)return;done=true;const v=inp.value.trim();nr.remove();if(!v)return;
         projOpen.add(proj.id);
-        proj.tasks.push({t:v,done:false,dl:null,dur:null,slots:1,repeat:null,repeatLog:{},inWeek:false,must:false});savePlanner();renderPlanner()};
+        proj.tasks.push({t:v,done:false,dl:null,dur:null,slots:1,repeat:null,repeatLog:{},weekOf:null,must:false});savePlanner();renderPlanner()};
       inp.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter'){ev.preventDefault();commit()}if(ev.key==='Escape'){done=true;nr.remove()}});
       inp.addEventListener('blur',()=>setTimeout(commit,150));
     };
@@ -2799,7 +2722,6 @@ function renderPlanner(){
   const grid=document.getElementById('pillars-grid');
   grid.innerHTML='';
   PILLARS.forEach(p=>grid.appendChild(makePillarCard(p)));
-  renderDeadlineStrip();
   renderSlotMeter();
   buildTodo();updateStats();
 }
