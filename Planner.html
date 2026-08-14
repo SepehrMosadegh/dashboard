@@ -65,48 +65,6 @@ button:disabled:hover{background:var(--s1)}
 .stat-num{font-size:17px;font-weight:500;line-height:1.2}
 .stat-label{font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
 .todo-section{background:var(--s1);border:0.5px solid var(--bd);border-radius:12px;padding:1.1rem 1.4rem}
-/* --- week header + nav --- */
-.week-hdr-row{display:flex;align-items:center;gap:8px;margin-bottom:.6rem;flex-wrap:wrap}
-.week-hdr-row .section-hdr{margin-bottom:0}
-.week-hdr-row .spacer{flex:1}
-#wk-nav .lbl{min-width:132px}
-/* --- slot meter --- */
-.slot-meter{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:.85rem;padding-bottom:.75rem;border-bottom:0.5px solid var(--bd)}
-.slot-pillar{display:flex;flex-direction:column;gap:3px;min-width:110px;flex:1}
-.slot-lbl{font-size:11px;color:var(--ts);display:flex;justify-content:space-between}
-.slot-lbl b{font-weight:500;color:var(--tp)}
-.slot-track{height:6px;background:var(--s0);border-radius:3px;overflow:hidden}
-.slot-fill{height:100%;border-radius:3px}
-.slot-fill.over{background:#E24B4A!important}
-/* --- must flag + done state on week rows --- */
-.must-flag{color:#A32D2D;font-size:13px;flex-shrink:0}
-.todo-item .must-flag{cursor:default}
-.todo-item.wk-done{opacity:.55}
-.todo-item.wk-done .todo-label{text-decoration:line-through}
-.recur-tag{font-size:10px;color:var(--tm);display:flex;align-items:center;gap:3px;flex-shrink:0}
-.wk-remove{background:none;border:none;color:var(--tm);cursor:pointer;padding:2px;flex-shrink:0}
-.wk-remove:hover{color:#A32D2D;background:none}
-/* --- plan popover (repeat / must / add-to-week) on task rows --- */
-.plan-popover{position:absolute;right:0;top:calc(100% + 4px);background:var(--s1);border:0.5px solid var(--bds);border-radius:8px;padding:10px 12px;z-index:400;display:none;min-width:220px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
-.plan-popover.open{display:block}
-.plan-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:12px}
-.plan-row label{flex:1;cursor:pointer}
-.plan-days{display:none;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
-.plan-days.on{display:grid}
-.pill-slots{background:#EEEDFE;color:#534AB7}
-.pill-repeat{background:var(--s0);color:var(--ts)}
-/* --- pull sheet --- */
-.pull-row{display:flex;align-items:center;gap:9px;padding:8px 4px;border-bottom:0.5px solid var(--bd);cursor:pointer}
-.pull-row:last-child{border-bottom:none}
-.pull-row:hover{background:var(--s2)}
-.pull-name{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pull-dl{font-size:11px;color:var(--tm);flex-shrink:0}
-.pull-add{background:none;border:none;color:var(--ac);cursor:pointer;font-size:18px;padding:0 2px;flex-shrink:0;line-height:1}
-.pull-add:hover{background:none}
-/* --- settings modal reuse --- */
-.tgt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.tgt-row span{flex:1;font-size:12px}
-.tgt-row input{width:64px;height:30px;text-align:center}
 .section-hdr{font-size:11px;font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.7rem;display:flex;align-items:center;gap:5px}
 .bucket{border:0.5px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:6px}
 .bucket:last-child{margin-bottom:0}
@@ -455,18 +413,7 @@ button:disabled:hover{background:var(--s1)}
       <div class="stat-card"><div class="stat-num" id="s-tasks">—</div><div class="stat-label">Tasks</div></div>
     </div>
     <div class="todo-section" style="margin-bottom:.85rem">
-      <div class="week-hdr-row">
-        <div class="section-hdr"><i class="ti ti-calendar-week" style="font-size:13px"></i> <span id="wk-title">This Week</span></div>
-        <div class="spacer"></div>
-        <div class="rt-datenav" id="wk-nav">
-          <button class="icon-btn" id="wk-prev"><i class="ti ti-chevron-left" style="font-size:14px"></i></button>
-          <span class="lbl" id="wk-label"></span>
-          <button class="icon-btn" id="wk-next"><i class="ti ti-chevron-right" style="font-size:14px"></i></button>
-        </div>
-        <button class="pill" id="pull-btn"><i class="ti ti-plus" style="font-size:12px;vertical-align:-2px;margin-right:3px"></i>Pull tasks</button>
-        <button class="icon-btn" id="wk-settings-btn" title="Slot budgets"><i class="ti ti-adjustments" style="font-size:14px"></i></button>
-      </div>
-      <div class="slot-meter" id="slot-meter"></div>
+      <div class="section-hdr"><i class="ti ti-checks" style="font-size:13px"></i> To Do List</div>
       <div id="todo-root"></div>
     </div>
     <div class="pillars-grid" id="pillars-grid"></div>
@@ -488,32 +435,6 @@ button:disabled:hover{background:var(--s1)}
       <button id="setup-delete" class="danger" style="display:none">Delete plan</button>
       <button id="setup-cancel">Cancel</button>
       <button class="primary-btn" id="setup-create">Create plan</button>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="pull-overlay">
-  <div class="modal" style="max-width:480px">
-    <h2>Pull into this week</h2>
-    <div class="hint" style="margin-bottom:10px">Sorted by deadline. Amber date = due soon.</div>
-    <div id="pull-list"></div>
-    <div class="modal-actions">
-      <button id="pull-close">Done</button>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="wk-settings-overlay">
-  <div class="modal" style="max-width:420px">
-    <h2>Slot budgets</h2>
-    <div class="field">
-      <label>Weekly slots per pillar</label>
-      <div id="wk-targets"></div>
-      <div class="hint">A slot ≈ one focused session. Most tasks are 1 slot.</div>
-    </div>
-    <div class="modal-actions">
-      <button id="wk-settings-cancel">Cancel</button>
-      <button class="primary-btn" id="wk-settings-save">Save</button>
     </div>
   </div>
 </div>
@@ -2087,24 +2008,6 @@ function piI(p){
   if(typeof i!=='number')i=(typeof p.ci==='number'?p.ci:(LEGACY[p.id]!==undefined?LEGACY[p.id]:0));
   return ICONS[i%ICONS.length].i;
 }
-const DEFAULT_SLOT_BUDGET=4;
-const EARLIEST='2000-01-01';   /* since-gate default for repeats that predate this field */
-function normalizeTask(t){
-  if(typeof t.slots!=='number'||t.slots<=0)t.slots=1;
-  if(!t.repeat||typeof t.repeat!=='object'||typeof t.repeat.days!=='string'||t.repeat.days.length!==7){
-    t.repeat=null;
-  }else if(typeof t.repeat.since!=='string'){
-    t.repeat.since=EARLIEST;   /* pre-existing repeat from before "since" existed: don't hide its history */
-  }
-  if(!t.repeatLog||typeof t.repeatLog!=='object')t.repeatLog={};
-  /* migrate the old sticky boolean to a specific week, landing in the current week */
-  if(typeof t.weekOf!=='string'){
-    t.weekOf=(t.inWeek===true)?rtWeekOf(todayStr())[0]:null;
-  }
-  delete t.inWeek;
-  if(typeof t.must!=='boolean')t.must=false;
-  return t;
-}
 function normalizePillars(ps){
   if(!Array.isArray(ps))ps=[];
   ps.forEach((p,idx)=>{
@@ -2112,9 +2015,8 @@ function normalizePillars(ps){
     if(typeof p.ci!=='number')p.ci=(LEGACY[p.id]!==undefined?LEGACY[p.id]:idx%PALETTE.length);
     if(typeof p.ii!=='number')p.ii=p.ci%ICONS.length;
     if(!p.title)p.title='Pillar '+(idx+1);
-    if(typeof p.slotBudget!=='number'||p.slotBudget<0)p.slotBudget=DEFAULT_SLOT_BUDGET;
     if(!Array.isArray(p.projects))p.projects=[];
-    p.projects.forEach(pr=>{if(!pr.id)pr.id=uid();if(!Array.isArray(pr.tasks))pr.tasks=[];pr.tasks.forEach(normalizeTask)});
+    p.projects.forEach(pr=>{if(!pr.id)pr.id=uid();if(!Array.isArray(pr.tasks))pr.tasks=[]});
   });
   // exactly PILLAR_COUNT slots. extras fold their projects into the last slot
   // so no work is ever silently dropped.
@@ -2126,9 +2028,6 @@ function normalizePillars(ps){
   }
   return ps;
 }
-/* repeatLog doubles as a light weekly history now that past weeks are
-   browsable, so it's kept in full rather than pruned. Volume stays tiny —
-   a handful of recurring tasks x a few ticks a week. */
 function savePlanner(){
   try{
     localStorage.setItem(PL_KEY,JSON.stringify({
@@ -2153,11 +2052,12 @@ registerSync('planner','planner',PL_KEY,d=>!!d.pillars,d=>{
   localStorage.setItem(PL_KEY,JSON.stringify(d));
   renderPlanner();
 });
-function closeAll(except){document.querySelectorAll('.dl-popover.open,.dur-popover.open,.pick.open,.plan-popover.open').forEach(d=>{if(!except||d!==except)d.classList.remove('open')})}
+function closeAll(except){document.querySelectorAll('.dl-popover.open,.dur-popover.open,.pick.open').forEach(d=>{if(!except||d!==except)d.classList.remove('open')})}
 function isProjectDone(p){return p.tasks.length>0&&p.tasks.every(t=>t.done)}
 function parseDate(s){if(!s)return null;const p=s.match(/(\d{4})-(\d{2})-(\d{2})/);return p?new Date(+p[1],+p[2]-1,+p[3]):null}
 function daysFrom(d){return d?Math.round((d-NOW)/864e5):null}
 function fmtDL(s){const d=parseDate(s);return d?d.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'}):s}
+function getBucket(dl){const d=parseDate(dl);if(!d)return 'later';const n=daysFrom(d);return n<=7?'week':n<=28?'month':'later'}
 function updateStats(){
   let tp=0,tt=0;
   PILLARS.forEach(pl=>pl.projects.forEach(pr=>{if(!isProjectDone(pr)){tp++;tt+=pr.tasks.filter(t=>!t.done).length}}));
@@ -2178,270 +2078,167 @@ function makeBannerEditable(id){
     this.replaceWith(inp);inp.focus();inp.select();
   });
 }
-/* ===================== THIS WEEK ===================== */
-/* recurring occurrences are computed at render time from task.repeat + task.repeatLog,
-   never stored as separate objects, so nothing accumulates beyond the ticks themselves.
-   WEEKVIEW is the Sunday of whichever week is currently being browsed — defaults to
-   the real current week but can be navigated forward/back independently of "today". */
-let WEEKVIEW=rtWeekOf(todayStr())[0];
-function currentWeekStart(){ return rtWeekOf(todayStr())[0]; }
-function weekLabel(startStr){
-  const dates=rtWeekOf(startStr);
-  const a=new Date(dates[0]+'T00:00:00'),b=new Date(dates[6]+'T00:00:00');
-  const fmt=dt=>dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  return fmt(a)+' – '+fmt(b);
-}
-function collectWeekItems(){
-  const out=[],dates=rtWeekOf(WEEKVIEW);
-  PILLARS.forEach(pl=>pl.projects.forEach(proj=>proj.tasks.forEach(task=>{
-    if(task.repeat){
-      dates.forEach(ds=>{
-        if(ds<task.repeat.since)return;
-        if(task.repeat.days.charAt(new Date(ds+'T00:00:00').getDay())!=='1')return;
-        const st=task.repeatLog[ds];
-        if(st==='skipped')return;   /* skipped occurrences don't clutter the week */
-        out.push({recur:true,task,proj,pillar:pl,rdate:ds,rdone:st==='done'});
-      });
-    }else if(task.weekOf===WEEKVIEW){
-      out.push({recur:false,task,proj,pillar:pl});
-    }
-  })));
-  out.sort((a,b)=>{
-    if(a.task.must!==b.task.must)return a.task.must?-1:1;
-    const ka=a.recur?a.rdate:(a.task.order||0)+'',kb=b.recur?b.rdate:(b.task.order||0)+'';
-    if(a.recur||b.recur){if(ka!==kb)return ka<kb?-1:1;}
-    return (a.task.order||0)-(b.task.order||0);
-  });
-  return out;
-}
-/* Completing a task doesn't shrink your committed slots for the week — the
-   meter tracks what you took on, not just what's left, so it counts done
-   items exactly like undone ones. */
-function slotUsage(){
-  const out={};
-  PILLARS.forEach(pl=>out[pl.id]={used:0,budget:pl.slotBudget});
-  collectWeekItems().forEach(it=>{ if(out[it.pillar.id])out[it.pillar.id].used+=(it.task.slots||1); });
-  return out;
-}
-function renderSlotMeter(){
-  const host=document.getElementById('slot-meter');host.innerHTML='';
-  const usage=slotUsage();
-  PILLARS.forEach(pl=>{
-    const c=piC(pl),u=usage[pl.id];
-    const cell=document.createElement('div');cell.className='slot-pillar';
-    const lbl=document.createElement('div');lbl.className='slot-lbl';
-    lbl.innerHTML=`<span>${escapeHtml(pl.title)}</span><b>${u.used}/${u.budget}</b>`;
-    const track=document.createElement('div');track.className='slot-track';
-    const fill=document.createElement('div');fill.className='slot-fill'+(u.used>u.budget?' over':'');
-    fill.style.cssText=`width:${u.budget?Math.min(100,u.used/u.budget*100):0}%;`+(u.used>u.budget?'':`background:${c.bar}`);
-    track.appendChild(fill);cell.append(lbl,track);host.appendChild(cell);
-  });
-}
-function renderWeekNav(){
-  const isCurrent=WEEKVIEW===currentWeekStart();
-  document.getElementById('wk-title').textContent=isCurrent?'This Week':'Week';
-  document.getElementById('wk-label').textContent=(isCurrent?'This week · ':'')+weekLabel(WEEKVIEW);
-}
-document.getElementById('wk-prev').addEventListener('click',()=>{WEEKVIEW=rtShift(WEEKVIEW,-7);renderPlanner()});
-document.getElementById('wk-next').addEventListener('click',()=>{WEEKVIEW=rtShift(WEEKVIEW,7);renderPlanner()});
+const bucketOpen={week:true,month:false,later:false};
+const sgOpen={};
 function buildTodo(){
-  renderWeekNav();
   const root=document.getElementById('todo-root');root.innerHTML='';
-  const items=collectWeekItems();
-  if(!items.length){root.innerHTML='<div class="empty-hint">Nothing in this week yet — use "Pull tasks" above, or set a task to repeat.</div>';return}
-  items.forEach(item=>root.appendChild(item.recur?makeRecurRow(item):makeWeekRow(item)));
-}
-function makeWeekRow(item){
-  const {task,proj,pillar}=item;
-  const c=piC(pillar);
-  const row=document.createElement('div');row.className='todo-item'+(task.done?' wk-done':'');
-  row.style.setProperty('--pc',c.dot);row.style.setProperty('--pt',c.txt);
-  if(task.must){const f=document.createElement('i');f.className='ti ti-flag-filled must-flag';f.title='Must this week';row.appendChild(f)}
-  const cb=document.createElement('input');cb.type='checkbox';cb.className='todo-cb';cb.checked=!!task.done;
-  cb.addEventListener('change',function(){task.done=this.checked;savePlanner();renderPlanner()});
-  const resort=()=>{renderPlanner();savePlanner()};
-  const tlbl=makeTaskLabel(task,proj,resort);tlbl.classList.add('todo-label');
-  const tags=document.createElement('div');tags.className='todo-tags';
-  const prt=document.createElement('span');prt.className='todo-tag';prt.style.cssText=`background:${c.dot};color:${c.txt}`;
-  prt.textContent=proj.name.length>22?proj.name.slice(0,20)+'…':proj.name;
-  tags.append(prt);
-  if(task.slots>1){const s=document.createElement('span');s.className='task-pill pill-slots';s.textContent=task.slots+' slots';tags.appendChild(s)}
-  const rm=document.createElement('button');rm.className='wk-remove';rm.title='Remove from this week';
-  rm.innerHTML='<i class="ti ti-x" style="font-size:13px"></i>';
-  rm.addEventListener('click',()=>{task.weekOf=null;savePlanner();renderPlanner()});
-  tags.appendChild(rm);
-  row.append(cb,tlbl,tags);
-  return row;
-}
-/* A recurring occurrence: ticking writes one key into repeatLog rather than
-   creating a task, so storage grows with work done, not with time elapsed.
-   The row stays in the list either way — checking it just marks that date done. */
-function makeRecurRow(item){
-  const {task,proj,pillar,rdate,rdone}=item;
-  const c=piC(pillar);
-  const row=document.createElement('div');row.className='todo-item recur-row'+(rdone?' wk-done':'');
-  row.style.setProperty('--pc',c.dot);row.style.setProperty('--pt',c.txt);
-  if(task.must){const f=document.createElement('i');f.className='ti ti-flag-filled must-flag';f.title='Must this week';row.appendChild(f)}
-  const cb=document.createElement('input');cb.type='checkbox';cb.className='todo-cb';cb.checked=rdone;
-  cb.addEventListener('change',function(){
-    if(this.checked)task.repeatLog[rdate]='done';else delete task.repeatLog[rdate];
-    savePlanner();renderPlanner();
+  const all=[];
+  PILLARS.forEach(pl=>pl.projects.forEach(proj=>proj.tasks.forEach(task=>{if(!task.done)all.push({task,proj,pillar:pl})})));
+  all.sort((a,b)=>{const da=parseDate(a.task.dl),db=parseDate(b.task.dl);
+    if(da&&db){if(da-db!==0)return da-db;return (a.task.order||0)-(b.task.order||0)}
+    if(da)return -1;if(db)return 1;return (a.task.order||0)-(b.task.order||0)});
+  if(!all.length){root.innerHTML='<div class="empty-hint">Nothing outstanding.</div>';return}
+  const buckets={week:[],month:[],later:[]};
+  all.forEach(i=>buckets[getBucket(i.task.dl)].push(i));
+  [{key:'week',label:'This Week',badge:'bw',icon:'ti-flame'},{key:'month',label:'This Month',badge:'bm',icon:'ti-calendar'},{key:'later',label:'Later',badge:'bl',icon:'ti-clock'}].forEach(({key,label,badge,icon})=>{
+    const items=buckets[key];
+    const bucket=document.createElement('div');bucket.className='bucket bkt-'+key;
+    const hdr=document.createElement('div');hdr.className='bucket-hdr';
+    const ico=document.createElement('i');ico.className='ti '+icon;ico.style.cssText='font-size:13px;color:var(--tm)';
+    const lbl=document.createElement('span');lbl.className='bucket-label';lbl.textContent=label;
+    const bdg=document.createElement('span');bdg.className='bucket-badge '+badge;bdg.textContent=items.length+' task'+(items.length===1?'':'s');
+    const chev=document.createElement('i');chev.className='ti ti-chevron-down bucket-chev';
+    hdr.append(ico,lbl,bdg,chev);
+    const body=document.createElement('div');body.className='bucket-body';
+    if(bucketOpen[key]){body.classList.add('open');chev.classList.add('open')}
+    hdr.addEventListener('click',()=>{bucketOpen[key]=!bucketOpen[key];body.classList.toggle('open',bucketOpen[key]);chev.classList.toggle('open',bucketOpen[key])});
+    if(!items.length&&key==='later'){const e=document.createElement('div');e.className='empty-hint';e.style.padding='6px 8px';e.textContent='Nothing here';body.appendChild(e)}
+    else{
+      const groups={};
+      items.forEach(i=>{const k=i.task.dl||'No date';(groups[k]=groups[k]||[]).push(i)});
+      if(key==='week')for(let o=0;o<=7;o++){const d=new Date(NOW);d.setDate(d.getDate()+o);groups[localDateStr(d)]=groups[localDateStr(d)]||[]}
+      if(key==='month')for(let o=8;o<=28;o++){const d=new Date(NOW);d.setDate(d.getDate()+o);groups[localDateStr(d)]=groups[localDateStr(d)]||[]}
+      Object.entries(groups).sort((a,b)=>{
+        const da=a[0]==='No date'?null:parseDate(a[0]),db=b[0]==='No date'?null:parseDate(b[0]);
+        if(da&&db)return da-db;if(da)return -1;if(db)return 1;return 0;
+      }).forEach(([dk,ditems])=>{
+        const d=parseDate(dk),days=daysFrom(d),ov=days!==null&&days<0;
+        const sg=document.createElement('div');sg.className='subgroup';
+        const sghdr=document.createElement('div');sghdr.className='sg-hdr';
+        if(ov){const dot=document.createElement('div');dot.className='ov-dot';sghdr.appendChild(dot)}
+        const sgd=document.createElement('span');sgd.className='sg-date';sgd.style.color=ov?'#A32D2D':'var(--ts)';
+        sgd.textContent=(dk==='No date'?'No date':fmtDL(dk))+(ov?` (${Math.abs(days)}d overdue)`:days===0?' (today)':days===1?' (tomorrow)':'');
+        const sgc=document.createElement('span');sgc.className='sg-count';sgc.textContent=ditems.length+' task'+(ditems.length===1?'':'s');
+        const sgv=document.createElement('i');sgv.className='ti ti-chevron-down sg-chev';
+        sghdr.append(sgd,sgc,sgv);
+        const sgi=document.createElement('div');sgi.className='sg-items';
+        const okey=key+'_'+dk;
+        let open=false;
+        if(sgOpen[okey]!==undefined)open=sgOpen[okey];
+        else if(!ditems.length)open=false;
+        else if(key==='week')open=days!==null&&days<=1;   /* overdue, today, tomorrow */
+        else if(key==='month')open=false;
+        if(open){sgi.classList.add('open');sgv.classList.add('open')}
+        sghdr.addEventListener('click',()=>{const o=sgi.classList.toggle('open');sgv.classList.toggle('open',o);sgOpen[okey]=o});
+        function finalizeMove(targetTask){
+          if(!todoDragCtx)return;
+          const {task:dt,pillar:dp}=todoDragCtx;todoDragCtx=null;
+          dt.dl=(dk==='No date')?null:dk;
+          const without=ditems.filter(it=>it.task!==dt);
+          if(targetTask){const at=without.findIndex(it=>it.task===targetTask);without.splice(at>=0?at:without.length,0,{task:dt})}
+          else without.push({task:dt});
+          without.forEach((it,i)=>{it.task.order=i*10});
+          renderPlanner();savePlanner();
+        }
+        sg._finalizeMove=finalizeMove;
+        sg.addEventListener('dragover',e=>{if(!todoDragCtx)return;e.preventDefault();sg.classList.add('drag-target')});
+        sg.addEventListener('dragleave',e=>{if(!sg.contains(e.relatedTarget))sg.classList.remove('drag-target')});
+        sg.addEventListener('drop',e=>{e.preventDefault();sg.classList.remove('drag-target');finalizeMove(null)});
+        ditems.forEach(({task,proj,pillar})=>{
+          const c=piC(pillar);
+          const row=document.createElement('div');row.className='todo-item';row.draggable=true;row._task=task;
+          row.style.setProperty('--pc',c.dot);row.style.setProperty('--pt',c.txt);
+          row.addEventListener('dragstart',e=>{todoDragCtx={task,proj,pillar};e.dataTransfer.effectAllowed='move';row.style.opacity='.4'});
+          row.addEventListener('dragend',()=>{row.style.opacity='';todoDragCtx=null;document.querySelectorAll('.subgroup.drag-target,.todo-item.drag-over').forEach(x=>x.classList.remove('drag-target','drag-over'))});
+          row.addEventListener('dragover',e=>{if(!todoDragCtx||todoDragCtx.task===task)return;e.preventDefault();e.stopPropagation();row.classList.add('drag-over')});
+          row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+          row.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();row.classList.remove('drag-over');sg.classList.remove('drag-target');finalizeMove(task)});
+          const dh=document.createElement('i');dh.className='ti ti-grip-vertical todo-dh';dh.style.touchAction='none';
+          dh.addEventListener('pointerdown',e=>{
+            if(e.pointerType==='mouse')return;
+            e.preventDefault();const pid=e.pointerId;
+            todoDragCtx={task,proj,pillar};row.classList.add('touch-dragging');
+            try{dh.setPointerCapture(pid)}catch(err){}
+            const clear=()=>document.querySelectorAll('.subgroup.drag-target,.todo-item.drag-over').forEach(x=>x.classList.remove('drag-target','drag-over'));
+            const move=ev=>{
+              if(ev.pointerId!==pid)return;clear();
+              const el=document.elementFromPoint(ev.clientX,ev.clientY);if(!el)return;
+              const tr=el.closest('.todo-item'),ts=el.closest('.subgroup');
+              if(tr&&tr!==row)tr.classList.add('drag-over');else if(ts)ts.classList.add('drag-target');
+            };
+            const up=ev=>{
+              if(ev.pointerId!==pid)return;
+              document.removeEventListener('pointermove',move);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);
+              row.classList.remove('touch-dragging');clear();
+              const el=document.elementFromPoint(ev.clientX,ev.clientY);
+              const tr=el&&el.closest('.todo-item'),ts=el&&el.closest('.subgroup');
+              if(tr&&tr._task&&tr.closest('.subgroup')&&tr.closest('.subgroup')._finalizeMove)tr.closest('.subgroup')._finalizeMove(tr._task);
+              else if(ts&&ts._finalizeMove)ts._finalizeMove(null);
+              else todoDragCtx=null;
+            };
+            document.addEventListener('pointermove',move);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);
+          });
+          const cb=document.createElement('input');cb.type='checkbox';cb.className='todo-cb';
+          cb.addEventListener('change',function(){if(!this.checked)return;task.done=true;renderPlanner();savePlanner()});
+          const tags=document.createElement('div');tags.className='todo-tags';
+          const prt=document.createElement('span');prt.className='todo-tag';prt.style.cssText=`background:${c.dot};color:${c.txt}`;
+          prt.textContent=proj.name.length>22?proj.name.slice(0,20)+'…':proj.name;
+          const resort=()=>{renderPlanner();savePlanner()};
+          const tlbl=makeTaskLabel(task,proj,resort);tlbl.classList.add('todo-label');
+          tags.append(prt,makeDurBtn(task,resort));
+          row.append(dh,cb,tlbl,tags);sgi.appendChild(row);
+        });
+        sg.append(sghdr,sgi);body.appendChild(sg);
+      });
+    }
+    bucket.append(hdr,body);root.appendChild(bucket);
   });
-  const lbl=document.createElement('span');lbl.className='todo-label';lbl.textContent=task.t;
-  const tags=document.createElement('div');tags.className='todo-tags';
-  const dayTag=document.createElement('span');dayTag.className='recur-tag';
-  dayTag.innerHTML='<i class="ti ti-repeat" style="font-size:11px"></i>'+RT_DOW3[new Date(rdate+'T00:00:00').getDay()];
-  const prt=document.createElement('span');prt.className='todo-tag';prt.style.cssText=`background:${c.dot};color:${c.txt}`;
-  prt.textContent=proj.name.length>18?proj.name.slice(0,16)+'…':proj.name;
-  const skip=document.createElement('button');skip.className='task-pill pill-muted';skip.textContent='skip';
-  skip.title='Skip this occurrence';
-  skip.addEventListener('click',()=>{task.repeatLog[rdate]='skipped';savePlanner();renderPlanner()});
-  tags.append(dayTag,prt,skip);
-  row.append(cb,lbl,tags);
-  return row;
 }
-
-/* ---------- pull sheet ---------- */
-const pullOverlay=document.getElementById('pull-overlay');
-function renderPullList(){
-  const host=document.getElementById('pull-list');host.innerHTML='';
-  const items=[];
-  PILLARS.forEach(pl=>pl.projects.forEach(proj=>proj.tasks.forEach(task=>{
-    if(task.done||task.weekOf||task.repeat)return;
-    items.push({task,proj,pillar:pl});
-  })));
-  if(!items.length){host.innerHTML='<div class="empty-hint">Nothing left to pull — everything active is already in a week, or repeats automatically.</div>';return}
-  items.forEach(({task,proj,pillar})=>{
-    const c=piC(pillar);
-    const row=document.createElement('div');row.className='pull-row';
-    const nm=document.createElement('span');nm.className='pull-name';nm.textContent=task.t;
-    const tag=document.createElement('span');tag.className='todo-tag';tag.style.cssText=`background:${c.dot};color:${c.txt}`;
-    tag.textContent=proj.name.length>16?proj.name.slice(0,14)+'…':proj.name;
-    const add=document.createElement('button');add.className='pull-add';add.innerHTML='<i class="ti ti-plus" style="font-size:15px"></i>';
-    const pull=()=>{task.weekOf=WEEKVIEW;savePlanner();renderPlanner();renderPullList()};
-    row.addEventListener('click',pull);
-    add.addEventListener('click',e=>{e.stopPropagation();pull()});
-    row.append(nm,tag,add);host.appendChild(row);
-  });
-}
-document.getElementById('pull-btn').addEventListener('click',()=>{renderPullList();pullOverlay.classList.add('open')});
-document.getElementById('pull-close').addEventListener('click',()=>pullOverlay.classList.remove('open'));
-
-/* ---------- slot budget settings ---------- */
-const wkSettingsOverlay=document.getElementById('wk-settings-overlay');
-let wkDraft=null;
-document.getElementById('wk-settings-btn').addEventListener('click',()=>{
-  wkDraft={targets:PILLARS.map(p=>p.slotBudget)};
-  const host=document.getElementById('wk-targets');host.innerHTML='';
-  PILLARS.forEach((p,i)=>{
-    const c=piC(p);
-    const row=document.createElement('div');row.className='tgt-row';
-    const dot=document.createElement('span');dot.style.cssText='width:7px;height:7px;border-radius:50%;background:'+c.bar+';flex-shrink:0';
-    const s=document.createElement('span');s.textContent=p.title;
-    const inp=document.createElement('input');inp.type='number';inp.min='0';inp.step='1';inp.value=p.slotBudget;
-    inp.addEventListener('input',()=>{wkDraft.targets[i]=Math.max(0,parseInt(inp.value)||0)});
-    row.append(dot,s,inp);host.appendChild(row);
-  });
-  wkSettingsOverlay.classList.add('open');
-});
-document.getElementById('wk-settings-cancel').addEventListener('click',()=>wkSettingsOverlay.classList.remove('open'));
-document.getElementById('wk-settings-save').addEventListener('click',()=>{
-  PILLARS.forEach((p,i)=>p.slotBudget=wkDraft.targets[i]);
-  savePlanner();wkSettingsOverlay.classList.remove('open');renderPlanner();
-});
-
-function makeSlotBtn(task,resortCb){
+function makeDurBtn(task,resortCb){
   const wrap=document.createElement('div');wrap.className='dropdown-wrap';
   const btn=document.createElement('button');
-  let prev=task.slots||1;
-  const refresh=()=>{btn.className='task-pill pill-slots';btn.textContent=(task.slots||1)+(task.slots===1?' slot':' slots')};
+  let prev=task.dur||1;
+  const refresh=()=>{btn.className='task-pill '+(task.dur?'pill-dur':'pill-muted');btn.textContent=task.dur?task.dur+'h':'dur'};
   refresh();
   const pop=document.createElement('div');pop.className='dur-popover';
   pop.addEventListener('click',e=>e.stopPropagation());
   pop.addEventListener('mousedown',e=>e.stopPropagation());
-  const lbl=document.createElement('label');lbl.textContent='Sessions this will take';
+  const lbl=document.createElement('label');lbl.textContent='Duration (hours)';
   const row=document.createElement('div');row.className='dur-row';
   const minus=document.createElement('button');minus.className='dur-step';minus.textContent='−';minus.type='button';
-  const inp=document.createElement('input');inp.className='dur-inp';inp.type='number';inp.min='1';inp.step='1';inp.value=task.slots||1;
+  const inp=document.createElement('input');inp.className='dur-inp';inp.type='number';inp.min='0.5';inp.step='0.5';inp.value=task.dur||1;
   const plus=document.createElement('button');plus.className='dur-step';plus.textContent='+';plus.type='button';
-  minus.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();inp.value=Math.max(1,parseInt(inp.value||1)-1)});
-  plus.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();inp.value=Math.min(9,parseInt(inp.value||1)+1)});
+  minus.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();inp.value=Math.max(0.5,+(parseFloat(inp.value||1)-1).toFixed(1))});
+  plus.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();inp.value=+(parseFloat(inp.value||0)+1).toFixed(1)});
   const hint=document.createElement('div');hint.className='dur-hint';hint.textContent='Enter to save · Esc to cancel';
   const setBtn=document.createElement('button');setBtn.type='button';setBtn.className='dur-set-btn';setBtn.textContent='Set';
-  const saveSlots=()=>{const v=parseInt(inp.value);if(!isNaN(v)&&v>0){task.slots=v;prev=v;refresh();resortCb()}pop.classList.remove('open')};
-  setBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();saveSlots()});
+  const saveDur=()=>{const v=parseFloat(inp.value);if(!isNaN(v)&&v>0){task.dur=v;prev=v;refresh();resortCb()}pop.classList.remove('open')};
+  setBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();saveDur()});
   inp.addEventListener('click',e=>e.stopPropagation());
-  inp.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter'){ev.preventDefault();saveSlots()}if(ev.key==='Escape'){inp.value=prev;pop.classList.remove('open')}});
+  inp.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter'){ev.preventDefault();saveDur()}if(ev.key==='Escape'){inp.value=prev;pop.classList.remove('open')}});
   row.append(minus,inp,plus);pop.append(lbl,row,setBtn,hint);
-  btn.onclick=e=>{e.stopPropagation();const was=pop.classList.contains('open');closeAll(null);if(!was){prev=task.slots||1;inp.value=prev;pop.classList.add('open');setTimeout(()=>{inp.focus();inp.select()},30)}};
+  btn.onclick=e=>{e.stopPropagation();const was=pop.classList.contains('open');closeAll(null);if(!was){prev=task.dur||1;inp.value=prev;pop.classList.add('open');setTimeout(()=>{inp.focus();inp.select()},30)}};
   wrap.append(btn,pop);return wrap;
 }
-/* One control bundling the less-frequently-touched task properties: whether it
-   repeats weekly, whether it's a must this week, and (for non-repeating tasks)
-   whether it's pulled into the week at all. */
-function makePlanBtn(task,resortCb){
+function makeDlBtn(task,resortCb){
   const wrap=document.createElement('div');wrap.className='dropdown-wrap';
-  const btn=document.createElement('button');btn.className='icon-btn';btn.style.cssText='width:22px;height:22px';
-  const refreshIcon=()=>{
-    btn.innerHTML=task.repeat?'<i class="ti ti-repeat" style="font-size:13px;color:var(--ac)"></i>':'<i class="ti ti-dots" style="font-size:13px"></i>';
-    btn.title=task.repeat?'Repeats weekly':'Plan this task';
+  const btn=document.createElement('button');
+  const refresh=()=>{
+    if(!task.dl){btn.className='task-pill pill-muted';btn.textContent='date';return}
+    const d=parseDate(task.dl),n=d?daysFrom(d):null;
+    btn.className='task-pill '+(n!==null&&n<0?'pill-do':'pill-df');btn.textContent=task.dl;
   };
-  refreshIcon();
-  const pop=document.createElement('div');pop.className='plan-popover';
+  refresh();
+  const pop=document.createElement('div');pop.className='dl-popover';
+  const lbl=document.createElement('label');lbl.textContent='Task deadline';
+  const inp=document.createElement('input');inp.type='date';if(task.dl)inp.value=task.dl;
+  inp.onchange=()=>{task.dl=inp.value||null;refresh();pop.classList.remove('open');resortCb()};
+  const clr=document.createElement('button');clr.className='dl-clear';clr.textContent='Clear date';
+  clr.onclick=e=>{e.stopPropagation();task.dl=null;inp.value='';refresh();pop.classList.remove('open');resortCb()};
+  pop.append(lbl,inp,clr);
   pop.addEventListener('click',e=>e.stopPropagation());
   pop.addEventListener('mousedown',e=>e.stopPropagation());
-  const idBase=uid();
-
-  const mustRow=document.createElement('div');mustRow.className='plan-row';
-  const mustCb=document.createElement('input');mustCb.type='checkbox';mustCb.id='pm-'+idBase;mustCb.checked=!!task.must;
-  const mustLbl=document.createElement('label');mustLbl.htmlFor=mustCb.id;mustLbl.textContent='Must this week';
-  mustCb.addEventListener('change',()=>{task.must=mustCb.checked;savePlanner();resortCb()});
-  mustRow.append(mustCb,mustLbl);
-
-  const repRow=document.createElement('div');repRow.className='plan-row';
-  const repCb=document.createElement('input');repCb.type='checkbox';repCb.id='pr-'+idBase;repCb.checked=!!task.repeat;
-  const repLbl=document.createElement('label');repLbl.htmlFor=repCb.id;repLbl.textContent='Repeats weekly';
-  repRow.append(repCb,repLbl);
-
-  const daysWrap=document.createElement('div');daysWrap.className='plan-days'+(task.repeat?' on':'');
-  let draftDays=(task.repeat&&task.repeat.days)||'0000000';
-  const applyRepeat=()=>{
-    const since=(task.repeat&&task.repeat.since)||todayStr();   /* preserve history once a repeat has started */
-    task.repeat={days:draftDays,since};task.weekOf=null;
-  };
-  RT_DOW.forEach((l,i)=>{
-    const b=document.createElement('button');b.type='button';
-    b.className='rt-daypill'+(draftDays.charAt(i)==='1'?' on':'');b.textContent=l;b.style.cssText='width:26px;height:26px;font-size:11px';
-    b.addEventListener('click',()=>{
-      const a=draftDays.split('');a[i]=a[i]==='1'?'0':'1';draftDays=a.join('');
-      b.classList.toggle('on',a[i]==='1');
-      if(draftDays.indexOf('1')>=0)applyRepeat();
-      savePlanner();resortCb();
-    });
-    daysWrap.appendChild(b);
-  });
-  repCb.addEventListener('change',()=>{
-    if(repCb.checked){
-      if(draftDays.indexOf('1')<0)draftDays='0100000';
-      applyRepeat();
-      daysWrap.classList.add('on');
-      [...daysWrap.children].forEach((b,i)=>b.classList.toggle('on',draftDays.charAt(i)==='1'));
-    }else{
-      task.repeat=null;daysWrap.classList.remove('on');
-    }
-    savePlanner();refreshIcon();resortCb();
-  });
-
-  const wkRow=document.createElement('div');wkRow.className='plan-row';
-  const wkCb=document.createElement('input');wkCb.type='checkbox';wkCb.id='pw-'+idBase;wkCb.checked=task.weekOf===WEEKVIEW;
-  const wkLbl=document.createElement('label');wkLbl.htmlFor=wkCb.id;wkLbl.textContent='In this week';
-  wkCb.addEventListener('change',()=>{task.weekOf=wkCb.checked?WEEKVIEW:null;savePlanner();resortCb()});
-  wkRow.append(wkCb,wkLbl);
-  const syncWkRow=()=>{wkRow.style.display=task.repeat?'none':'';wkCb.checked=task.weekOf===WEEKVIEW;};
-  syncWkRow();
-
-  pop.append(mustRow,repRow,daysWrap,wkRow);
-  btn.onclick=e=>{e.stopPropagation();const was=pop.classList.contains('open');closeAll(null);if(!was){pop.classList.add('open');syncWkRow();refreshIcon()}};
+  btn.onclick=e=>{e.stopPropagation();const was=pop.classList.contains('open');closeAll(null);if(!was)pop.classList.add('open')};
   wrap.append(btn,pop);return wrap;
 }
 function makeTaskLabel(task,proj,resortCb){
@@ -2472,7 +2269,7 @@ function makeSubEl(task,proj,resortCb){
   cb.addEventListener('change',function(){task.done=this.checked;setTimeout(resortCb,180)});
   const lbl=makeTaskLabel(task,proj,resortCb);
   const right=document.createElement('div');right.className='task-right';
-  right.append(makePlanBtn(task,resortCb),makeSlotBtn(task,resortCb));
+  right.append(makeDurBtn(task,resortCb),makeDlBtn(task,resortCb));
   div.append(dh,cb,lbl,right);
   function finish(){
     const parent=div.parentNode;
@@ -2518,7 +2315,11 @@ function renderTasks(proj,subs,addBtn,donediv,metaEl){
   doneList.innerHTML='';
   donediv.classList.remove('vis');
   const resort=()=>{renderPlanner();savePlanner()};
-  const active=proj.tasks.filter(t=>!t.done).sort((a,b)=>(a.order||0)-(b.order||0));
+  const active=proj.tasks.filter(t=>!t.done).sort((a,b)=>{
+    const da=parseDate(a.dl),db=parseDate(b.dl);
+    if(da&&db){if(da-db!==0)return da-db;return (a.order||0)-(b.order||0)}
+    if(da)return -1;if(db)return 1;return (a.order||0)-(b.order||0);
+  });
   active.forEach(t=>subs.insertBefore(makeSubEl(t,proj,resort),donediv));
   const done=proj.tasks.filter(t=>t.done);
   if(done.length){donediv.classList.add('vis');donediv.querySelector('.done-lbl').textContent='Completed ('+done.length+')'}
@@ -2608,9 +2409,14 @@ function makePillarCard(pillar){
       this.replaceWith(inp);inp.focus();inp.select();
     });
     const pmeta=document.createElement('div');pmeta.className='proj-meta';pmeta.style.color=c.txt;
+    function fmtMY(s){const d=parseDate(s);return d?d.toLocaleDateString('en-CA',{month:'short',year:'numeric'}):s}
     function refreshMeta(){
       const rem=proj.tasks.filter(t=>!t.done).length;
-      pmeta.textContent=rem+' task'+(rem===1?'':'s');
+      const dls=proj.tasks.filter(t=>t.dl).map(t=>t.dl).sort();
+      let ds='';
+      if(dls.length){const a=fmtMY(dls[0]),b=fmtMY(dls[dls.length-1]);ds='  ·  '+(a===b?a:a+' – '+b)}
+      else if(proj.deadline)ds='  ·  '+fmtMY(proj.deadline);
+      pmeta.textContent=rem+' task'+(rem===1?'':'s')+ds;
     }
     refreshMeta();pmeta.refreshMeta=refreshMeta;
     pinfo.append(pname,pmeta);
@@ -2641,7 +2447,7 @@ function makePillarCard(pillar){
       let done=false;
       const commit=()=>{if(done)return;done=true;const v=inp.value.trim();nr.remove();if(!v)return;
         projOpen.add(proj.id);
-        proj.tasks.push({t:v,done:false,dl:null,dur:null,slots:1,repeat:null,repeatLog:{},weekOf:null,must:false});savePlanner();renderPlanner()};
+        proj.tasks.push({t:v,done:false,dl:null,dur:null});savePlanner();renderPlanner()};
       inp.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter'){ev.preventDefault();commit()}if(ev.key==='Escape'){done=true;nr.remove()}});
       inp.addEventListener('blur',()=>setTimeout(commit,150));
     };
@@ -2722,7 +2528,6 @@ function renderPlanner(){
   const grid=document.getElementById('pillars-grid');
   grid.innerHTML='';
   PILLARS.forEach(p=>grid.appendChild(makePillarCard(p)));
-  renderSlotMeter();
   buildTodo();updateStats();
 }
 
