@@ -65,6 +65,42 @@ button:disabled:hover{background:var(--s1)}
 .stat-num{font-size:17px;font-weight:500;line-height:1.2}
 .stat-label{font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
 .todo-section{background:var(--s1);border:0.5px solid var(--bd);border-radius:12px;padding:1.1rem 1.4rem}
+/* --- risk strip --- */
+.risk-strip{background:var(--s1);border:0.5px solid var(--bd);border-radius:12px;padding:.7rem 1rem;margin-bottom:.85rem}
+.risk-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.risk-lead{display:flex;align-items:center;gap:7px;flex:1;min-width:0}
+.risk-lead .ti{font-size:17px}
+.risk-headline{font-size:13px;font-weight:500}
+.risk-sub{font-size:11px;color:var(--tm)}
+.risk-ok{color:#0F6E56}.risk-warn{color:#854F0B}.risk-bad{color:#A32D2D}
+.risk-chip{font-size:11px;padding:4px 10px;border-radius:6px;border:0.5px solid var(--bd);background:var(--s2);color:var(--ts);white-space:nowrap}
+.risk-chip.on{border-color:var(--ac);background:var(--acb);color:var(--ac);font-weight:500}
+.risk-chip.zero{opacity:.5}
+.risk-pillars{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--bd)}
+.risk-pi{font-size:11px;color:var(--tm);display:flex;align-items:center;gap:5px}
+.risk-pi b{font-weight:500}
+.risk-pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.risk-filterbar{display:flex;align-items:center;gap:8px;margin-bottom:.6rem;font-size:11px;color:var(--tm)}
+/* --- recurring --- */
+.todo-item.recur-row .todo-label{color:var(--ts)}
+.recur-ico{font-size:12px;color:var(--tm);cursor:pointer;opacity:.7;flex-shrink:0}
+.recur-ico:hover{opacity:1;color:var(--ac)}
+.todo-item.at-risk{box-shadow:inset 2px 0 0 #E24B4A}
+.rule-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--bd);font-size:12px}
+.rule-row:last-child{border-bottom:none}
+.rule-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rule-meta{font-size:11px;color:var(--tm);white-space:nowrap}
+.cap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cap-cell{text-align:center}
+.cap-cell label{font-size:10px;color:var(--tm);display:block;margin-bottom:3px}
+.cap-cell input{width:100%;text-align:center;height:32px}
+.exc-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.exc-row input[type=date]{flex:1;height:30px}
+.exc-row input[type=number]{width:60px;height:30px;text-align:center}
+.exc-row input[type=text]{flex:1;height:30px}
+.tgt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.tgt-row span{flex:1;font-size:12px}
+.tgt-row input{width:70px;height:30px;text-align:center}
 .section-hdr{font-size:11px;font-weight:500;color:var(--tm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.7rem;display:flex;align-items:center;gap:5px}
 .bucket{border:0.5px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:6px}
 .bucket:last-child{margin-bottom:0}
@@ -412,8 +448,10 @@ button:disabled:hover{background:var(--s1)}
       <div class="stat-card"><div class="stat-num" id="s-projects">—</div><div class="stat-label">Projects</div></div>
       <div class="stat-card"><div class="stat-num" id="s-tasks">—</div><div class="stat-label">Tasks</div></div>
     </div>
+    <div class="risk-strip" id="risk-strip"></div>
     <div class="todo-section" style="margin-bottom:.85rem">
       <div class="section-hdr"><i class="ti ti-checks" style="font-size:13px"></i> To Do List</div>
+      <div id="todo-filterbar" class="risk-filterbar" style="display:none"></div>
       <div id="todo-root"></div>
     </div>
     <div class="pillars-grid" id="pillars-grid"></div>
@@ -435,6 +473,57 @@ button:disabled:hover{background:var(--s1)}
       <button id="setup-delete" class="danger" style="display:none">Delete plan</button>
       <button id="setup-cancel">Cancel</button>
       <button class="primary-btn" id="setup-create">Create plan</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="cap-overlay">
+  <div class="modal" style="max-width:520px">
+    <h2>Capacity &amp; targets</h2>
+    <div class="field">
+      <label>Hours available each day</label>
+      <div class="cap-grid" id="cap-grid"></div>
+      <div class="hint">Your normal week. Use exceptions below for one-off changes.</div>
+    </div>
+    <div class="field">
+      <label>Exception days</label>
+      <div id="cap-exceptions"></div>
+      <button class="setup-add-ex" id="cap-add-exc" style="margin-top:4px"><i class="ti ti-plus" style="font-size:12px;vertical-align:-2px;margin-right:3px"></i>Add exception</button>
+      <div class="hint">Travel, conferences, leave. Set 0 hours to block the day out entirely.</div>
+    </div>
+    <div class="field">
+      <label>Weekly target hours per pillar</label>
+      <div id="cap-targets"></div>
+      <div class="hint">Optional. Used only to show whether a pillar is being neglected.</div>
+    </div>
+    <div class="modal-actions">
+      <button id="cap-cancel">Cancel</button>
+      <button class="primary-btn" id="cap-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="rec-overlay">
+  <div class="modal" style="max-width:470px">
+    <h2 id="rec-title">Recurring commitment</h2>
+    <div class="field"><label>Name</label><input type="text" id="rec-name" placeholder="Course X — prep"></div>
+    <div class="field-row">
+      <div class="field"><label>Project</label><select id="rec-project"></select></div>
+      <div class="field"><label>Hours each time</label><input type="number" id="rec-hours" min="0.5" step="0.5" value="1"></div>
+    </div>
+    <div class="field">
+      <label>Days</label>
+      <div class="rt-days" id="rec-days"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Starts</label><input type="date" id="rec-since"></div>
+      <div class="field"><label>Ends (optional)</label><input type="date" id="rec-until"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="rec-delete" class="danger" style="display:none">Delete</button>
+      <button id="rec-pause" style="display:none">Pause</button>
+      <button id="rec-cancel">Cancel</button>
+      <button class="primary-btn" id="rec-save">Save</button>
     </div>
   </div>
 </div>
@@ -2008,6 +2097,39 @@ let dragSrc=null,dragType=null,todoDragCtx=null;
 const projOpen=new Set();   /* project ids left expanded, kept across re-renders */
 const doneOpen=new Set();
 let PILLARS=[];
+/* --- planning layer (all additive; older saves load fine and get defaults) --- */
+const PL_DEFAULT_DUR=1;      /* assumed hours for a deadlined task with no estimate */
+const RECUR_BACK=7, RECUR_FWD=28;
+let CAPACITY=defaultCapacity(), RECURRING=[], RECURLOG={};
+function defaultCapacity(){
+  return {perDay:{0:0,1:6,2:6,3:6,4:6,5:6,6:0},exceptions:[],pillarTargets:{}};
+}
+/* Firebase drops empty arrays/objects on write, so every field is re-defaulted here. */
+function normalizePlanning(s){
+  const cap=(s&&s.capacity&&typeof s.capacity==='object')?s.capacity:{};
+  if(!cap.perDay||typeof cap.perDay!=='object')cap.perDay={};
+  for(let i=0;i<7;i++){
+    const v=cap.perDay[i];
+    if(typeof v!=='number'||isNaN(v)||v<0)cap.perDay[i]=(i===0||i===6)?0:6;
+  }
+  if(!Array.isArray(cap.exceptions))cap.exceptions=[];
+  cap.exceptions=cap.exceptions.filter(e=>e&&typeof e.date==='string');
+  cap.exceptions.forEach(e=>{if(typeof e.hours!=='number'||e.hours<0)e.hours=0;if(typeof e.note!=='string')e.note='';});
+  if(!cap.pillarTargets||typeof cap.pillarTargets!=='object')cap.pillarTargets={};
+  CAPACITY=cap;
+  let rec=(s&&Array.isArray(s.recurring))?s.recurring:[];
+  rec.forEach(r=>{
+    if(!r.id)r.id=uid();
+    if(typeof r.name!=='string'||!r.name)r.name='Recurring';
+    if(typeof r.days!=='string'||r.days.length!==7)r.days='0000000';
+    if(typeof r.hours!=='number'||r.hours<=0)r.hours=1;
+    if(typeof r.active!=='boolean')r.active=true;
+    if(typeof r.since!=='string')r.since=todayStr();
+    if(typeof r.until!=='string')r.until='';
+  });
+  RECURRING=rec;
+  RECURLOG=(s&&s.recurLog&&typeof s.recurLog==='object')?s.recurLog:{};
+}
 function piC(p){
   let i=p.ci;
   if(typeof i!=='number')i=(LEGACY[p.id]!==undefined?LEGACY[p.id]:0);
@@ -2042,7 +2164,9 @@ function savePlanner(){
   try{
     localStorage.setItem(PL_KEY,JSON.stringify({
       bannerTitle:document.getElementById('brand-title').textContent,
-      pillars:PILLARS,updatedAt:Date.now()
+      pillars:PILLARS,
+      capacity:CAPACITY,recurring:RECURRING,recurLog:pruneRecurLog(),
+      updatedAt:Date.now()
     }));
   }catch(e){}
   queueSave('planner');
@@ -2050,15 +2174,17 @@ function savePlanner(){
 const saveState=savePlanner;
 function loadPlanner(){
   try{
-    const raw=localStorage.getItem(PL_KEY);if(!raw)return;
+    const raw=localStorage.getItem(PL_KEY);if(!raw){normalizePlanning(null);return;}
     const s=JSON.parse(raw);
     if(s.bannerTitle)document.getElementById('brand-title').textContent=s.bannerTitle;
     if(s.pillars)PILLARS=normalizePillars(s.pillars);
-  }catch(e){}
+    normalizePlanning(s);
+  }catch(e){normalizePlanning(null);}
 }
 registerSync('planner','planner',PL_KEY,d=>!!d.pillars,d=>{
   document.getElementById('brand-title').textContent=d.bannerTitle||'Dashboard';
   PILLARS=normalizePillars(d.pillars);
+  normalizePlanning(d);
   localStorage.setItem(PL_KEY,JSON.stringify(d));
   renderPlanner();
 });
@@ -2092,8 +2218,22 @@ const bucketOpen={week:true,month:false,later:false};
 const sgOpen={};
 function buildTodo(){
   const root=document.getElementById('todo-root');root.innerHTML='';
-  const all=[];
+  let all=[];
   PILLARS.forEach(pl=>pl.projects.forEach(proj=>proj.tasks.forEach(task=>{if(!task.done)all.push({task,proj,pillar:pl})})));
+  if(todoFilter){
+    const r=riskCache;
+    all=all.filter(({task})=>
+      todoFilter==='overdue' ? (task.dl&&task.dl<todayStr()) :
+      todoFilter==='risk'    ? r.atRisk.has(task) :
+                               r.unest.has(task));
+  }else{
+    /* recurring occurrences are computed each render and carry a throwaway
+       task object so all the existing sorting and grouping code just works */
+    expandRecurring().forEach(r=>{
+      all.push({recur:true,rule:r.rule,rdate:r.rdate,proj:r.proj,pillar:r.pillar,
+        task:{t:r.rule.name,dl:r.rdate,dur:r.rule.hours,done:false,order:0}});
+    });
+  }
   all.sort((a,b)=>{const da=parseDate(a.task.dl),db=parseDate(b.task.dl);
     if(da&&db){if(da-db!==0)return da-db;return (a.task.order||0)-(b.task.order||0)}
     if(da)return -1;if(db)return 1;return (a.task.order||0)-(b.task.order||0)});
@@ -2154,9 +2294,12 @@ function buildTodo(){
         sg.addEventListener('dragover',e=>{if(!todoDragCtx)return;e.preventDefault();sg.classList.add('drag-target')});
         sg.addEventListener('dragleave',e=>{if(!sg.contains(e.relatedTarget))sg.classList.remove('drag-target')});
         sg.addEventListener('drop',e=>{e.preventDefault();sg.classList.remove('drag-target');finalizeMove(null)});
-        ditems.forEach(({task,proj,pillar})=>{
+        ditems.forEach(item=>{
+          const {task,proj,pillar}=item;
           const c=piC(pillar);
+          if(item.recur){sgi.appendChild(makeRecurRow(item,c));return}
           const row=document.createElement('div');row.className='todo-item';row.draggable=true;row._task=task;
+          if(riskCache.atRisk.has(task))row.classList.add('at-risk');
           row.style.setProperty('--pc',c.dot);row.style.setProperty('--pt',c.txt);
           row.addEventListener('dragstart',e=>{todoDragCtx={task,proj,pillar};e.dataTransfer.effectAllowed='move';row.style.opacity='.4'});
           row.addEventListener('dragend',()=>{row.style.opacity='';todoDragCtx=null;document.querySelectorAll('.subgroup.drag-target,.todo-item.drag-over').forEach(x=>x.classList.remove('drag-target','drag-over'))});
@@ -2203,6 +2346,36 @@ function buildTodo(){
     }
     bucket.append(hdr,body);root.appendChild(bucket);
   });
+}
+/* A recurring occurrence: ticking it writes one key into RECURLOG rather than
+   creating a task, so nothing accumulates in storage. */
+function makeRecurRow(item,c){
+  const {rule,rdate,proj}=item;
+  const row=document.createElement('div');row.className='todo-item recur-row';
+  row.style.setProperty('--pc',c.dot);row.style.setProperty('--pt',c.txt);
+  const ric=document.createElement('i');ric.className='ti ti-repeat recur-ico';
+  ric.title='Recurring — click to edit';
+  ric.addEventListener('click',e=>{e.stopPropagation();openRecModal(rule.id,null)});
+  const cb=document.createElement('input');cb.type='checkbox';cb.className='todo-cb';
+  cb.addEventListener('change',function(){
+    if(!this.checked)return;
+    RECURLOG[recurKey(rule.id,rdate)]='done';savePlanner();renderPlanner();
+  });
+  const lbl=document.createElement('span');lbl.className='todo-label';lbl.textContent=rule.name;
+  const tags=document.createElement('div');tags.className='todo-tags';
+  const prt=document.createElement('span');prt.className='todo-tag';
+  prt.style.cssText='background:'+c.dot+';color:'+c.txt;
+  prt.textContent=proj.name.length>22?proj.name.slice(0,20)+'…':proj.name;
+  const hrs=document.createElement('span');hrs.className='task-pill pill-dur';hrs.textContent=rule.hours+'h';
+  const skip=document.createElement('button');skip.className='task-pill pill-muted';skip.textContent='skip';
+  skip.title='Skip this occurrence';
+  skip.addEventListener('click',e=>{
+    e.stopPropagation();
+    RECURLOG[recurKey(rule.id,rdate)]='skipped';savePlanner();renderPlanner();
+  });
+  tags.append(prt,hrs,skip);
+  row.append(ric,cb,lbl,tags);
+  return row;
 }
 function makeDurBtn(task,resortCb){
   const wrap=document.createElement('div');wrap.className='dropdown-wrap';
@@ -2269,6 +2442,327 @@ function makeTaskLabel(task,proj,resortCb){
   });
   return lbl;
 }
+</script>
+<script>
+/* ===================== PLANNING: RECURRING + RISK ===================== */
+let todoFilter=null;   /* null | 'overdue' | 'risk' | 'unest' */
+let riskCache={crunch:null,overdue:0,atRisk:new Set(),unest:new Set(),slackAt:{}};
+
+function recurKey(id,date){return id+'|'+date}
+function projectIndex(){
+  const ix={};
+  PILLARS.forEach(pl=>pl.projects.forEach(pr=>{ix[pr.id]={proj:pr,pillar:pl}}));
+  return ix;
+}
+/* Instances are computed, never stored. Only ticks live in RECURLOG, so the
+   payload grows with work done rather than with time elapsed. */
+function expandRecurring(){
+  const out=[],ix=projectIndex(),today=todayStr();
+  const start=new Date(NOW);start.setDate(start.getDate()-RECUR_BACK);
+  RECURRING.forEach(r=>{
+    if(!r.active)return;
+    const ref=ix[r.projectId];if(!ref)return;
+    if(r.days.indexOf('1')<0)return;
+    for(let i=0;i<=RECUR_BACK+RECUR_FWD;i++){
+      const d=new Date(start);d.setDate(d.getDate()+i);
+      const ds=localDateStr(d);
+      if(r.days.charAt(d.getDay())!=='1')continue;
+      if(r.since&&ds<r.since)continue;
+      if(r.until&&ds>r.until)continue;
+      const st=RECURLOG[recurKey(r.id,ds)];
+      if(st==='done'||st==='skipped')continue;
+      out.push({rule:r,rdate:ds,proj:ref.proj,pillar:ref.pillar,past:ds<today});
+    }
+  });
+  return out;
+}
+/* Ticks outside the visible window can never be seen again, so drop them. */
+function pruneRecurLog(){
+  const lo=localDateStr(new Date(NOW.getTime()-(RECUR_BACK+400)*864e5));
+  const out={};
+  Object.keys(RECURLOG).forEach(k=>{
+    const d=k.split('|')[1];
+    if(d&&d>=lo)out[k]=RECURLOG[k];
+  });
+  RECURLOG=out;return out;
+}
+function availabilityOn(ds){
+  const ex=CAPACITY.exceptions.find(e=>e.date===ds);
+  if(ex)return Math.max(0,ex.hours||0);
+  const v=CAPACITY.perDay[new Date(ds+'T00:00:00').getDay()];
+  return typeof v==='number'?Math.max(0,v):0;
+}
+function taskHours(t){
+  return (typeof t.dur==='number'&&t.dur>0)?t.dur:PL_DEFAULT_DUR;
+}
+function isUnestimated(t){
+  return !(typeof t.dur==='number'&&t.dur>0);
+}
+/* Feasibility walk: for every day forward, does the capacity you'll actually
+   have cover everything due by then? The first day it doesn't is the crunch. */
+function computeRisk(){
+  const today=todayStr();
+  const reqByDate={},atRiskCand=[],unest=new Set();
+  let overdue=0;
+  PILLARS.forEach(pl=>pl.projects.forEach(pr=>pr.tasks.forEach(t=>{
+    if(t.done||!t.dl)return;
+    if(isUnestimated(t))unest.add(t);
+    if(t.dl<today)overdue++;
+    const key=t.dl<today?today:t.dl;
+    reqByDate[key]=(reqByDate[key]||0)+taskHours(t);
+    atRiskCand.push({task:t,key});
+  })));
+  /* Recurring hours consume capacity on their own day. Past occurrences
+     expire rather than accumulating phantom debt. */
+  const recurByDate={};
+  expandRecurring().forEach(r=>{
+    if(r.rdate>=today)recurByDate[r.rdate]=(recurByDate[r.rdate]||0)+r.rule.hours;
+  });
+  const keys=Object.keys(reqByDate).sort();
+  const slackAt={},atRisk=new Set();
+  let crunch=null;
+  if(keys.length){
+    const last=keys[keys.length-1];
+    let cursor=today,avail=0,cumReq=0,guard=0;
+    while(cursor<=last&&guard<800){
+      avail+=availabilityOn(cursor)-(recurByDate[cursor]||0);
+      cumReq+=reqByDate[cursor]||0;
+      slackAt[cursor]=avail-cumReq;
+      if(slackAt[cursor]<0&&!crunch)crunch=cursor;
+      cursor=rtShift(cursor,1);guard++;
+    }
+    atRiskCand.forEach(c=>{if((slackAt[c.key]||0)<0)atRisk.add(c.task)});
+  }
+  riskCache={crunch,overdue,atRisk,unest,slackAt};
+  return riskCache;
+}
+/* This week's committed hours per pillar, against the optional target. */
+function pillarLoad(){
+  const week=[],out={};
+  for(let i=0;i<7;i++){const d=new Date(NOW);d.setDate(d.getDate()+i);week.push(localDateStr(d))}
+  const lo=week[0],hi=week[6];
+  PILLARS.forEach(pl=>{out[pl.id]={planned:0,target:CAPACITY.pillarTargets[pl.id]||0}});
+  PILLARS.forEach(pl=>pl.projects.forEach(pr=>pr.tasks.forEach(t=>{
+    if(t.done||!t.dl)return;
+    if(t.dl>=lo&&t.dl<=hi)out[pl.id].planned+=taskHours(t);
+  })));
+  expandRecurring().forEach(r=>{
+    if(r.rdate>=lo&&r.rdate<=hi&&out[r.pillar.id])out[r.pillar.id].planned+=r.rule.hours;
+  });
+  return out;
+}
+function renderRiskStrip(){
+  const r=computeRisk();
+  const host=document.getElementById('risk-strip');
+  host.innerHTML='';
+  const row=document.createElement('div');row.className='risk-row';
+  const lead=document.createElement('div');lead.className='risk-lead';
+  const ico=document.createElement('i');
+  const txt=document.createElement('div');
+  const head=document.createElement('div');head.className='risk-headline';
+  const sub=document.createElement('div');sub.className='risk-sub';
+  const anyDeadlines=Object.keys(r.slackAt).length>0;
+  if(!anyDeadlines){
+    ico.className='ti ti-calendar-off';ico.style.color='var(--tm)';
+    head.textContent='Nothing scheduled yet';
+    sub.textContent='Give a task a deadline and an estimate to start tracking pace.';
+  }else if(r.crunch){
+    ico.className='ti ti-alert-triangle risk-bad';
+    head.className+=' risk-bad';
+    const d=parseDate(r.crunch),n=daysFrom(d);
+    head.textContent='Behind by '+fmtDL(r.crunch);
+    sub.textContent=(n<=0?'As of today':'In '+n+' day'+(n===1?'':'s'))+
+      ', you need '+Math.abs(Math.round(r.slackAt[r.crunch]*10)/10)+'h more than you have.';
+  }else{
+    const keys=Object.keys(r.slackAt);
+    const min=Math.round(Math.min(...keys.map(k=>r.slackAt[k]))*10)/10;
+    if(r.overdue){
+      /* the arithmetic still fits, but something has already slipped its date */
+      ico.className='ti ti-clock-exclamation risk-warn';
+      head.className+=' risk-warn';
+      head.textContent=r.overdue+' task'+(r.overdue===1?'':'s')+' past deadline';
+      sub.textContent='The rest of the schedule still fits — '+min+'h of slack at its tightest.';
+    }else{
+      ico.className='ti ti-circle-check risk-ok';
+      head.className+=' risk-ok';
+      head.textContent='On pace';
+      sub.textContent='Tightest margin is '+min+'h of slack.';
+    }
+  }
+  txt.append(head,sub);lead.append(ico,txt);row.appendChild(lead);
+  const chip=(key,label,count)=>{
+    const b=document.createElement('button');
+    b.className='risk-chip'+(todoFilter===key?' on':'')+(count?'':' zero');
+    b.textContent=count+' '+label;
+    b.addEventListener('click',()=>{
+      if(!count&&todoFilter!==key)return;
+      todoFilter=(todoFilter===key)?null:key;
+      renderPlanner();
+    });
+    return b;
+  };
+  row.appendChild(chip('overdue','overdue',r.overdue));
+  row.appendChild(chip('risk','at risk',r.atRisk.size));
+  row.appendChild(chip('unest','unestimated',r.unest.size));
+  const gear=document.createElement('button');gear.className='icon-btn';gear.title='Capacity & targets';
+  gear.innerHTML='<i class="ti ti-adjustments" style="font-size:14px"></i>';
+  gear.addEventListener('click',openCapModal);
+  row.appendChild(gear);
+  host.appendChild(row);
+  const loads=pillarLoad();
+  const anyTarget=PILLARS.some(p=>loads[p.id].target>0);
+  if(anyTarget){
+    const pr=document.createElement('div');pr.className='risk-pillars';
+    PILLARS.forEach(p=>{
+      const l=loads[p.id];if(!l.target)return;
+      const c=piC(p);
+      const el=document.createElement('div');el.className='risk-pi';
+      const dot=document.createElement('span');dot.className='risk-pdot';dot.style.background=c.bar;
+      const s=document.createElement('span');
+      s.innerHTML=escapeHtml(p.title)+' <b>'+(Math.round(l.planned*10)/10)+'</b>/'+l.target+'h';
+      el.append(dot,s);pr.appendChild(el);
+    });
+    if(pr.children.length)host.appendChild(pr);
+  }
+  const fb=document.getElementById('todo-filterbar');
+  if(todoFilter){
+    fb.style.display='';fb.innerHTML='';
+    const lbl=document.createElement('span');
+    lbl.textContent='Showing only '+{overdue:'overdue',risk:'at-risk',unest:'unestimated'}[todoFilter]+' tasks';
+    const clr=document.createElement('button');clr.className='risk-chip';clr.textContent='Clear filter';
+    clr.addEventListener('click',()=>{todoFilter=null;renderPlanner()});
+    fb.append(lbl,clr);
+  }else fb.style.display='none';
+}
+
+/* ---------- capacity modal ---------- */
+const capOverlay=document.getElementById('cap-overlay');
+let capDraft=null;
+function openCapModal(){
+  capDraft=JSON.parse(JSON.stringify(CAPACITY));
+  const grid=document.getElementById('cap-grid');grid.innerHTML='';
+  RT_DOW3.forEach((lbl,i)=>{
+    const c=document.createElement('div');c.className='cap-cell';
+    const l=document.createElement('label');l.textContent=lbl;
+    const inp=document.createElement('input');inp.type='number';inp.min='0';inp.step='0.5';inp.value=capDraft.perDay[i];
+    inp.addEventListener('input',()=>{capDraft.perDay[i]=Math.max(0,parseFloat(inp.value)||0)});
+    c.append(l,inp);grid.appendChild(c);
+  });
+  renderCapExceptions();
+  const tw=document.getElementById('cap-targets');tw.innerHTML='';
+  PILLARS.forEach(p=>{
+    const c=piC(p);
+    const row=document.createElement('div');row.className='tgt-row';
+    const dot=document.createElement('span');dot.className='risk-pdot';dot.style.background=c.bar;
+    const s=document.createElement('span');s.textContent=p.title;
+    const inp=document.createElement('input');inp.type='number';inp.min='0';inp.step='1';
+    inp.value=capDraft.pillarTargets[p.id]||'';inp.placeholder='—';
+    inp.addEventListener('input',()=>{
+      const v=parseFloat(inp.value);
+      if(!isNaN(v)&&v>0)capDraft.pillarTargets[p.id]=v;else delete capDraft.pillarTargets[p.id];
+    });
+    row.append(dot,s,inp);tw.appendChild(row);
+  });
+  capOverlay.classList.add('open');
+}
+function renderCapExceptions(){
+  const host=document.getElementById('cap-exceptions');host.innerHTML='';
+  capDraft.exceptions.forEach((e,i)=>{
+    const row=document.createElement('div');row.className='exc-row';
+    const d=document.createElement('input');d.type='date';d.value=e.date;
+    d.addEventListener('input',()=>e.date=d.value);
+    const h=document.createElement('input');h.type='number';h.min='0';h.step='0.5';h.value=e.hours;h.title='Hours available';
+    h.addEventListener('input',()=>e.hours=Math.max(0,parseFloat(h.value)||0));
+    const n=document.createElement('input');n.type='text';n.placeholder='Note';n.value=e.note||'';
+    n.addEventListener('input',()=>e.note=n.value);
+    const x=document.createElement('button');x.className='icon-btn';x.innerHTML='<i class="ti ti-x" style="font-size:13px"></i>';
+    x.addEventListener('click',()=>{capDraft.exceptions.splice(i,1);renderCapExceptions()});
+    row.append(d,h,n,x);host.appendChild(row);
+  });
+  if(!capDraft.exceptions.length){
+    const e=document.createElement('div');e.className='empty-hint';e.style.padding='2px 0';
+    e.textContent='No exceptions set.';host.appendChild(e);
+  }
+}
+document.getElementById('cap-add-exc').addEventListener('click',()=>{
+  capDraft.exceptions.push({date:todayStr(),hours:0,note:''});renderCapExceptions();
+});
+document.getElementById('cap-cancel').addEventListener('click',()=>capOverlay.classList.remove('open'));
+document.getElementById('cap-save').addEventListener('click',()=>{
+  capDraft.exceptions=capDraft.exceptions.filter(e=>e.date);
+  CAPACITY=capDraft;savePlanner();capOverlay.classList.remove('open');renderPlanner();
+});
+
+/* ---------- recurring rule modal ---------- */
+const recOverlay=document.getElementById('rec-overlay');
+let recEditingId=null,recDraftDays='0000000';
+function renderRecDays(){
+  const host=document.getElementById('rec-days');host.innerHTML='';
+  RT_DOW.forEach((l,i)=>{
+    const b=document.createElement('button');b.type='button';
+    b.className='rt-daypill'+(recDraftDays.charAt(i)==='1'?' on':'');b.textContent=l;
+    b.addEventListener('click',()=>{
+      const a=recDraftDays.split('');a[i]=a[i]==='1'?'0':'1';recDraftDays=a.join('');renderRecDays();
+    });
+    host.appendChild(b);
+  });
+}
+function openRecModal(ruleId,defaultProjectId){
+  recEditingId=ruleId;
+  const r=ruleId?RECURRING.find(x=>x.id===ruleId):null;
+  document.getElementById('rec-title').textContent=r?'Edit recurring':'New recurring';
+  document.getElementById('rec-name').value=r?r.name:'';
+  document.getElementById('rec-hours').value=r?r.hours:1;
+  document.getElementById('rec-since').value=r?r.since:todayStr();
+  document.getElementById('rec-until').value=r?(r.until||''):'';
+  const sel=document.getElementById('rec-project');sel.innerHTML='';
+  PILLARS.forEach(pl=>{
+    if(!pl.projects.length)return;
+    const g=document.createElement('optgroup');g.label=pl.title;
+    pl.projects.forEach(pr=>{
+      const o=document.createElement('option');o.value=pr.id;o.textContent=pr.name;g.appendChild(o);
+    });
+    sel.appendChild(g);
+  });
+  if(!sel.options.length){alert('Add a project first — a recurring commitment belongs to one.');return}
+  sel.value=r?r.projectId:(defaultProjectId||sel.options[0].value);
+  if(!sel.value)sel.value=sel.options[0].value;
+  recDraftDays=r?r.days:'0000000';
+  renderRecDays();
+  document.getElementById('rec-delete').style.display=r?'':'none';
+  const pb=document.getElementById('rec-pause');
+  pb.style.display=r?'':'none';
+  pb.textContent=(r&&!r.active)?'Resume':'Pause';
+  recOverlay.classList.add('open');
+}
+document.getElementById('rec-cancel').addEventListener('click',()=>recOverlay.classList.remove('open'));
+document.getElementById('rec-pause').addEventListener('click',()=>{
+  const r=RECURRING.find(x=>x.id===recEditingId);if(!r)return;
+  r.active=!r.active;savePlanner();recOverlay.classList.remove('open');renderPlanner();
+});
+document.getElementById('rec-delete').addEventListener('click',()=>{
+  const r=RECURRING.find(x=>x.id===recEditingId);if(!r)return;
+  if(!confirm('Delete "'+r.name+'"? Occurrences you already ticked stay in your history.'))return;
+  RECURRING=RECURRING.filter(x=>x.id!==recEditingId);
+  savePlanner();recOverlay.classList.remove('open');renderPlanner();
+});
+document.getElementById('rec-save').addEventListener('click',()=>{
+  const name=document.getElementById('rec-name').value.trim();
+  if(!name){alert('Give the commitment a name.');return}
+  if(recDraftDays.indexOf('1')<0){alert('Pick at least one day.');return}
+  const projectId=document.getElementById('rec-project').value;
+  const hours=Math.max(0.5,parseFloat(document.getElementById('rec-hours').value)||1);
+  const since=document.getElementById('rec-since').value||todayStr();
+  const until=document.getElementById('rec-until').value||'';
+  if(until&&until<since){alert('The end date is before the start date.');return}
+  if(recEditingId){
+    const r=RECURRING.find(x=>x.id===recEditingId);
+    Object.assign(r,{name,projectId,hours,days:recDraftDays,since,until});
+  }else{
+    RECURRING.push({id:uid(),name,projectId,hours,days:recDraftDays,since,until,active:true});
+  }
+  savePlanner();recOverlay.classList.remove('open');renderPlanner();
+});
 </script>
 <script>
 /* ---------- pillar cards ---------- */
@@ -2531,13 +3025,21 @@ function makePillarCard(pillar){
     const np={id:uid(),name:'New project',deadline:'',tasks:[]};
     pillar.projects.push(np);projOpen.add(np.id);savePlanner();renderPlanner();
   };
-  footer.appendChild(addProj);card.appendChild(footer);
+  footer.style.display='flex';footer.style.gap='14px';footer.style.flexWrap='wrap';
+  footer.appendChild(addProj);
+  const addRec=document.createElement('button');addRec.className='add-btn';
+  addRec.innerHTML='<i class="ti ti-repeat"></i> Add recurring';
+  addRec.title=pillar.projects.length?'Repeat a commitment weekly':'Add a project first';
+  addRec.onclick=()=>openRecModal(null,pillar.projects[0]&&pillar.projects[0].id);
+  footer.appendChild(addRec);
+  card.appendChild(footer);
   return card;
 }
 function renderPlanner(){
   const grid=document.getElementById('pillars-grid');
   grid.innerHTML='';
   PILLARS.forEach(p=>grid.appendChild(makePillarCard(p)));
+  renderRiskStrip();   /* must precede buildTodo — it fills riskCache */
   buildTodo();updateStats();
 }
 
